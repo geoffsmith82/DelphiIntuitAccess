@@ -10,7 +10,7 @@ uses
   JSON.ChartOfAccountList in 'JSON.ChartOfAccountList.pas',
   JSON.CustomerList in 'JSON.CustomerList.pas',
   secrets in 'secrets.pas',
-  pdfinvoice in '..\tcginvoices\pdfinvoice.pas',
+  PdfInvoices in '..\tcginvoices\PdfInvoices.pas',
   DebenuPDFLibraryDLL0916 in '..\components\QuickPDF\DLL\Import\Delphi\DebenuPDFLibraryDLL0916.pas',
   fmLogin in 'fmLogin.pas' {frmLogin};
 

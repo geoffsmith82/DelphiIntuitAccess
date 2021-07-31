@@ -55,7 +55,7 @@ uses
   , JSON.AttachableList
   , DebenuPDFLibraryDLL0916
   , fmLogin
-  , PDFInvoice
+  , PDFInvoices
   ;
 
 type

@@ -132,7 +132,7 @@
         <DCCReference Include="JSON.ChartOfAccountList.pas"/>
         <DCCReference Include="JSON.CustomerList.pas"/>
         <DCCReference Include="secrets.pas"/>
-        <DCCReference Include="..\tcginvoices\pdfinvoice.pas"/>
+        <DCCReference Include="..\tcginvoices\PdfInvoices.pas"/>
         <DCCReference Include="..\components\QuickPDF\DLL\Import\Delphi\DebenuPDFLibraryDLL0916.pas"/>
         <DCCReference Include="fmLogin.pas">
             <Form>frmLogin</Form>
