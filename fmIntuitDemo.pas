@@ -63,7 +63,6 @@ type
     RESTClient1: TRESTClient;
     RESTRequest1: TRESTRequest;
     Button1: TButton;
-    IdHTTPServer1: TIdHTTPServer;
     Button3: TButton;
     btnListCustomer: TButton;
     btnListInvoice: TButton;
@@ -113,7 +112,6 @@ type
     procedure btnAddInvoiceLineClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
-    procedure IdHTTPServer1CommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
     procedure JvDirectoryListBox1Change(Sender: TObject);
   private
     FrealmId : String;
@@ -616,41 +614,6 @@ begin
 
   end;
 
-end;
-
-procedure TForm1.IdHTTPServer1CommandGet(AContext: TIdContext; ARequestInfo: TIdHTTPRequestInfo; AResponseInfo: TIdHTTPResponseInfo);
-var
-  uri : TURI;
-  state : String;
-  code : String;
-  i : Integer;
-  codeExists : Boolean;
-begin
-  uri := TURI.Create('http://localhost' + ARequestInfo.URI + '?' + ARequestInfo.QueryParams);
-  OutputDebugString(PChar('HTTP Server: ' + uri.ToString));
-  codeExists := False;
-  for i := 0 to Length(uri.Params) - 1 do
-  begin
-    if uri.Params[i].Name = 'code' then
-    begin
-      codeExists := True;
-      Break;
-    end;
-  end;
-
-  if not codeExists then
-    Exit;
-
-  code := uri.ParameterByName['code'];
-  state := uri.ParameterByName['state'];
-  FrealmId := uri.ParameterByName['realmId'];
-
-  OAuth2Authenticator1.AuthCode := code;
-  Memo1.Lines.Add('url' + ARequestInfo.URI + ARequestInfo.QueryParams);
-
-  OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
-  Memo1.Lines.Add('Access Granted');
-  Memo1.Lines.Add(OAuth2Authenticator1.AccessToken);
 end;
 
 procedure TForm1.JvDirectoryListBox1Change(Sender: TObject);

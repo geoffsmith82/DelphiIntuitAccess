@@ -1319,13 +1319,6 @@ object Form1: TForm1
     Left = 128
     Top = 128
   end
-  object IdHTTPServer1: TIdHTTPServer
-    Bindings = <>
-    DefaultPort = 5000
-    OnCommandGet = IdHTTPServer1CommandGet
-    Left = 224
-    Top = 32
-  end
   object RESTResponse1: TRESTResponse
     Left = 352
     Top = 128
