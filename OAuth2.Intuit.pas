@@ -3,8 +3,7 @@ unit OAuth2.Intuit;
 interface
 
 uses
-    IPPeerClient
-  , REST.Client
+    REST.Client
   , REST.Authenticator.OAuth
   ;
 

@@ -39,6 +39,7 @@ type
     { Public declarations }
     OAuth2Authenticator1: TIntuitOAuth2;
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
+    procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
     procedure UploadAttachment(inFilename, inInvoiceID: string);
     procedure ChangeRefreshTokenToAccessToken;
     procedure ShowLoginForm;
@@ -134,6 +135,21 @@ begin
   end;
 end;
 
+procedure TdmIntuitAPI.SetupInvoice(invoice: TInvoiceClass; TxnDate:TDate; invoiceID:String);
+begin
+  invoice.CurrencyRef.name  := 'Australian Dollar';
+  invoice.CurrencyRef.value := 'AUD';
+  invoice.CustomerRef.name  := SECRET_CUSTOMER_NAME;
+  invoice.CustomerRef.value := SECRET_CUSTOMER_ID;
+  invoice.EmailStatus := 'NotSet';
+  invoice.GlobalTaxCalculation := 'NotApplicable';
+  invoice.PrintStatus := 'NotSet';
+  invoice.SyncToken := '0';
+  invoice.domain := 'QBO';
+  invoice.TxnDate := FormatDatetime('yyyy-mm-dd', TxnDate);  //'2019-05-30';
+  invoice.CustomerMemo.value := invoiceID;
+  invoice.TrackingNum := invoiceID;
+end;
 
 procedure TdmIntuitAPI.doLog(inText: string);
 begin

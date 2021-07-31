@@ -18,9 +18,6 @@ uses
   , Vcl.StdCtrls
   , Vcl.FileCtrl
   , Vcl.Grids
-  , IPPeerClient
-  , REST.Client
-  , REST.Authenticator.OAuth
   , REST.Types
   , Data.Bind.Components
   , Data.Bind.ObjectScope
@@ -32,7 +29,6 @@ uses
   , AdvObj
   , BaseGrid
   , AdvGrid
-  , OAuth2.Intuit
   , JSON.InvoiceList
   , JSON.VendorList
   , JSON.ChartOfAccountList
@@ -92,7 +88,6 @@ type
     procedure FileListBoxEx1Change(Sender: TObject);
   private
     FInvoice : TPDFInvoice;
-    procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
   public
     { Public declarations }
   end;
@@ -110,7 +105,6 @@ uses
   , System.JSON
   , System.IOUtils
   , secrets
-  , IdMultipartFormData
   ;
 
 procedure TForm1.btnAttachFileClick(Sender: TObject);
@@ -143,7 +137,7 @@ begin
 
   invoiceLine := TJSONObject.Create;
   invoiceLine.AddPair('Amount', TJSONNumber.Create(100.00));
-  invoiceLine.AddPair('DetailType','SalesItemLineDetail');
+  invoiceLine.AddPair('DetailType', 'SalesItemLineDetail');
 
   SalesItemLineDetail := TJSONObject.Create;
 
@@ -224,23 +218,6 @@ begin
   dmIntuitAPI.ChangeRefreshTokenToAccessToken;
 end;
 
-procedure TForm1.SetupInvoice(invoice: TInvoiceClass; TxnDate:TDate; invoiceID:String);
-begin
-  invoice.CurrencyRef.name  := 'Australian Dollar';
-  invoice.CurrencyRef.value := 'AUD';
-  invoice.CustomerRef.name  := SECRET_CUSTOMER_NAME;
-  invoice.CustomerRef.value := SECRET_CUSTOMER_ID;
-  invoice.EmailStatus := 'NotSet';
-  invoice.GlobalTaxCalculation := 'NotApplicable';
-  invoice.PrintStatus := 'NotSet';
-  invoice.SyncToken := '0';
-  invoice.domain := 'QBO';
-  invoice.TxnDate := FormatDatetime('yyyy-mm-dd', TxnDate);  //'2019-05-30';
-  invoice.CustomerMemo.value := invoiceID;
-  invoice.TrackingNum := invoiceID;
-end;
-
-
 procedure TForm1.btnCreateInvoiceFromObjectClick(Sender: TObject);
 var
   invoice : TInvoiceClass;
@@ -253,7 +230,7 @@ begin
 
   TxnDate := now;
   invoiceID := '12345';
-  SetupInvoice(invoice, TxnDate, invoiceID);
+  dmIntuitAPI.SetupInvoice(invoice, TxnDate, invoiceID);
 
   lineItems := TArray<TLineClass>.Create();
   setlength(lineItems, 3);
@@ -310,21 +287,21 @@ var
   invoiceID : string;
   TxnDate : TDateTime;
   cnt : Integer;
-  i: Integer;
+  i : Integer;
   returnedInvoice : TInvoiceClass;
 begin
   invoice := TInvoiceClass.Create;
 
   TxnDate := InvoiceDateDatePicker.Date;
   invoiceID := edtInvoiceNo.Text;
-  SetupInvoice(invoice, TxnDate, invoiceID);
+  dmIntuitAPI.SetupInvoice(invoice, TxnDate, invoiceID);
 
   lineItems := TArray<TLineClass>.Create();
   cnt := 1; // skip heading
   while True do
   begin
-    StringGrid1.Cells[0,cnt];
-    if StringGrid1.Cells[0,cnt] = '' then
+    StringGrid1.Cells[0, cnt];
+    if StringGrid1.Cells[0, cnt] = '' then
       Break;
 
     Inc(cnt);
@@ -359,7 +336,7 @@ begin
   lineItem.SalesItemLineDetail.ItemRef.value := '';
   lineItem.SalesItemLineDetail.qty := 0;
   lineItem.SalesItemLineDetail.unitPrice := 0;
-  lineItems[i-1] := lineItem;
+  lineItems[i - 1] := lineItem;
 
   invoice.Line := lineItems;
   Memo1.Lines.Add(invoice.ToJsonString);
@@ -371,7 +348,7 @@ end;
 
 procedure TForm1.btnAddInvoiceLineClick(Sender: TObject);
 begin
-   StringGrid1.RowCount := StringGrid1.RowCount + 1;
+  StringGrid1.RowCount := StringGrid1.RowCount + 1;
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
@@ -383,7 +360,7 @@ procedure TForm1.FileListBoxEx1Change(Sender: TObject);
 var
   i : Integer;
   l : Integer;
-  j: Integer;
+  j : Integer;
 begin
   if Assigned(FInvoice) then
     FreeAndNil(FInvoice);
@@ -427,7 +404,6 @@ begin
       Inc(l);
     end;
   end;
-
 end;
 
 end.
