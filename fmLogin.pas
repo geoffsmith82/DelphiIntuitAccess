@@ -9,6 +9,7 @@ uses
   , System.SysUtils
   , System.Variants
   , System.Classes
+  , System.IniFiles
   , Vcl.Graphics
   , Vcl.Controls
   , Vcl.Forms
@@ -21,14 +22,18 @@ uses
 
 type
   TfrmLogin = class(TForm)
-    WebBrowser1: TWebBrowser;
+    EdgeBrowser1: TEdgeBrowser;
+    procedure FormDestroy(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure EdgeBrowser1NavigationCompleted(Sender: TCustomEdgeBrowser; IsSuccess: Boolean; WebErrorStatus: TOleEnum);
     procedure EdgeBrowser1NavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
-    procedure WebBrowser1BeforeNavigate2(ASender: TObject; const pDisp: IDispatch; const URL, Flags, TargetFrameName, PostData, Headers: OLEVariant; var Cancel: WordBool);
   private
     { Private declarations }
+    FIniFile : TIniFile;
   public
     { Public declarations }
     procedure Login(url:string);
+    function GetRefreshToken: string;
   end;
 
 implementation
@@ -37,7 +42,72 @@ implementation
 
 uses
     System.Net.URLClient
-  , fmIntuitDemo;
+  , fmIntuitDemo
+  ;
+
+
+procedure TfrmLogin.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(FIniFile);
+end;
+
+function TfrmLogin.GetRefreshToken: string;
+begin
+  Result := FIniFile.ReadString('Authentication', 'RefreshToken', '');
+end;
+
+procedure TfrmLogin.FormCreate(Sender: TObject);
+var
+  iniPath : string;
+begin
+  iniPath := ChangeFileExt(ParamStr(0), '.ini');
+  FIniFile := TIniFile.Create(iniPath);
+end;
+
+procedure TfrmLogin.EdgeBrowser1NavigationCompleted(Sender: TCustomEdgeBrowser;
+    IsSuccess: Boolean; WebErrorStatus: TOleEnum);
+var
+  uri : TURI;
+  state : String;
+  code : String;
+  i : Integer;
+  codeExists : Boolean;
+  url : string;
+begin
+  codeExists := False;
+  try
+    url := Sender.LocationURL;
+    if URL.StartsWith('about:') then Exit;
+    uri := TURI.Create(URL);
+    OutputDebugString(PChar('Browser: ' + uri.ToString));
+     for i := 0 to Length(uri.Params)-1 do
+     begin
+       if uri.Params[i].Name='code' then
+       begin
+         codeExists := True;
+         Break;
+       end;
+     end;
+  except
+
+  end;
+
+  if not codeExists then
+    Exit;
+
+  code := uri.ParameterByName['code'];
+  state := uri.ParameterByName['state'];
+  Form1.RealmId := uri.ParameterByName['realmId'];
+
+  Form1.OAuth2Authenticator1.AuthCode := code;
+  Form1.Memo1.Lines.Add('url:'+URL);
+
+  Form1.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
+  Form1.Memo1.Lines.Add('Access Granted');
+  Form1.Memo1.Lines.Add(Form1.OAuth2Authenticator1.AccessToken);
+  FIniFile.WriteString('Authentication', 'RefreshToken', Form1.OAuth2Authenticator1.RefreshToken);
+  Close;
+end;
 
 procedure TfrmLogin.EdgeBrowser1NavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
 var
@@ -84,51 +154,8 @@ end;
 
 procedure TfrmLogin.Login(url: string);
 begin
-  WebBrowser1.Navigate(url);
+  EdgeBrowser1.Navigate(url);
   ShowModal;
-end;
-
-procedure TfrmLogin.WebBrowser1BeforeNavigate2(ASender: TObject; const pDisp: IDispatch; const URL, Flags, TargetFrameName, PostData, Headers: OLEVariant; var Cancel: WordBool);
-var
-  uri : TURI;
-  state : String;
-  code : String;
-  i : Integer;
-  codeExists : Boolean;
-begin
-  codeExists := False;
-  try
-    if string(URL).StartsWith('about:') then Exit;
-    uri := TURI.Create(URL);
-    OutputDebugString(PChar('Browser: ' + uri.ToString));
-     for i := 0 to Length(uri.Params)-1 do
-     begin
-       if uri.Params[i].Name='code' then
-       begin
-         codeExists := True;
-         Break;
-       end;
-     end;
-  except
-
-  end;
-
-  Cancel := False;
-
-  if not codeExists then
-    Exit;
-
-  code := uri.ParameterByName['code'];
-  state := uri.ParameterByName['state'];
-  Form1.RealmId := uri.ParameterByName['realmId'];
-
-  Form1.OAuth2Authenticator1.AuthCode := code;
-  Form1.Memo1.Lines.Add('url:'+URL);
-
-  Form1.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
-  Form1.Memo1.Lines.Add('Access Granted');
-  Form1.Memo1.Lines.Add(Form1.OAuth2Authenticator1.AccessToken);
-  Close;
 end;
 
 end.
