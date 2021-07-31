@@ -63,7 +63,7 @@ object Form1: TForm1
   end
   object btnCreateInvoiceFromObject: TButton
     Left = 559
-    Top = 8
+    Top = 9
     Width = 142
     Height = 25
     Caption = 'Create Invoice From Object'
@@ -1210,6 +1210,8 @@ object Form1: TForm1
           SortSettings.DefaultFormat = ssAutomatic
           UIStyle = tsOffice2007Luna
           Version = '8.6.0.0'
+          ExplicitLeft = 1
+          ExplicitTop = 135
           ColWidths = (
             64
             64
@@ -1305,6 +1307,14 @@ object Form1: TForm1
     TabOrder = 10
     OnClick = btnAddInvoiceLineClick
   end
+  object FileListBox1: TFileListBox
+    Left = 336
+    Top = 64
+    Width = 145
+    Height = 97
+    ItemHeight = 13
+    TabOrder = 11
+  end
   object RESTClient1: TRESTClient
     BaseURL = 'https://quickbooks.api.intuit.com'
     Params = <>
@@ -1322,34 +1332,5 @@ object Form1: TForm1
   object RESTResponse1: TRESTResponse
     Left = 352
     Top = 128
-  end
-  object IdHTTP1: TIdHTTP
-    IOHandler = IdSSLIOHandlerSocketOpenSSL1
-    ProxyParams.BasicAuthentication = False
-    ProxyParams.ProxyPort = 0
-    Request.ContentLength = -1
-    Request.ContentRangeEnd = -1
-    Request.ContentRangeStart = -1
-    Request.ContentRangeInstanceLength = -1
-    Request.Accept = 'application/json'
-    Request.BasicAuthentication = False
-    Request.UserAgent = 'Mozilla/3.0 (compatible; Indy Library)'
-    Request.Ranges.Units = 'bytes'
-    Request.Ranges = <>
-    HTTPOptions = [hoForceEncodeParams]
-    Left = 320
-    Top = 376
-  end
-  object IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL
-    MaxLineAction = maException
-    Port = 0
-    DefaultPort = 0
-    SSLOptions.Method = sslvTLSv1_2
-    SSLOptions.SSLVersions = [sslvTLSv1_2]
-    SSLOptions.Mode = sslmClient
-    SSLOptions.VerifyMode = []
-    SSLOptions.VerifyDepth = 0
-    Left = 336
-    Top = 488
   end
 end

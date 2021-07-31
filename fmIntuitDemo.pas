@@ -24,12 +24,6 @@ uses
   , REST.Types
   , Data.Bind.Components
   , Data.Bind.ObjectScope
-  , IdBaseComponent
-  , IdComponent
-  , IdCustomTCPServer
-  , IdCustomHTTPServer
-  , IdHTTPServer
-  , IdContext
   , FlCtrlEx
   , AdvSmoothEdit
   , AdvSmoothEditButton
@@ -39,14 +33,6 @@ uses
   , AdvObj
   , BaseGrid
   , AdvGrid
-  , IdTCPConnection
-  , IdTCPClient
-  , IdHTTP
-  , IdIOHandler
-  , IdIOHandlerSocket
-  , IdIOHandlerStack
-  , IdSSL
-  , IdSSLOpenSSL
   , OAuth2.Intuit
   , JSON.InvoiceList
   , JSON.VendorList
@@ -73,8 +59,6 @@ type
     DirectoryListBoxEx1: TDirectoryListBoxEx;
     FileListBoxEx1: TFileListBoxEx;
     btnAttachFile: TButton;
-    IdHTTP1: TIdHTTP;
-    IdSSLIOHandlerSocketOpenSSL1: TIdSSLIOHandlerSocketOpenSSL;
     StatusBar1: TStatusBar;
     PageControl1: TPageControl;
     TabSheet1: TTabSheet;
@@ -99,6 +83,7 @@ type
     edtProject: TEdit;
     btnUploadInvoice: TButton;
     btnAddInvoiceLine: TButton;
+    FileListBox1: TFileListBox;
     procedure FormDestroy(Sender: TObject);
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -158,14 +143,14 @@ var
   attachableRefArr : TArray<TAttachableRefClass>;
   attachableRef : TAttachableRefClass;
   attachJSON : TJSONObject;
-  multipart : TIdMultipartFormDataStream;
   ResponseStream : TStringStream;
+  RequestStream : TStringStream;
+  param : TRESTRequestParameter;
 begin
   if not TFile.Exists(inFilename) then
   begin
     raise Exception.Create('File Does not exist - ' + inFilename);
   end;
-
 
   attachable := TAttachableClass.Create;
   attachable.ContentType := 'application/pdf';
@@ -199,24 +184,25 @@ begin
   attachJSON.RemovePair('sparse');
   attachJSON.RemovePair('SyncToken');
 
-  multipart := TIdMultipartFormDataStream.Create;
-  multipart.AddFormField('file_metadata_01', attachJSON.ToJSON,  'utf8', 'application/json', 'somefile.json');
-  multipart.AddFile('file_content_01', inFilename, 'application/pdf');
+  RESTRequest1.ClearBody;
+  // This workaround is required to get around a bug in the Delphi REST Components
+  param := RESTRequest1.Params.AddItem('file_metadata_01', '', TRESTRequestParameterKind.pkREQUESTBODY,
+      [], TRESTContentType.ctAPPLICATION_JSON);
+  RequestStream := TStringStream.Create;
+  try
+    RequestStream.WriteString(attachjson.ToJSON);
+    param.SetStream(RequestStream);
+  finally
+    FreeAndNil(RequestStream);
+  end;
+  // End workaround
 
-  multipart.Position := 0;
-
-  ResponseStream := TStringStream.Create;
-
-  if IdHTTP1.Request.CustomHeaders.IndexOfName('Authorization') < 0 then
-    IdHTTP1.Request.CustomHeaders.AddValue('Authorization', 'Bearer ' + OAuth2Authenticator1.AccessToken);
+  RESTRequest1.AddFile('file_content_01', inFilename, TRESTContentType.ctAPPLICATION_PDF);
+  RESTRequest1.Execute;
 
   Memo1.Lines.Add(attachJSON.ToJSON);
   Memo1.Lines.Add('--------');
-  multipart.Position := 0;
-  IdHTTP1.Post(RESTClient1.BaseURL + RESTRequest1.Resource, multipart, ResponseStream);
-  multipart.Position := 0;
-
-  Memo1.Lines.Add(ResponseStream.DataString);
+  Memo1.Lines.Add(RESTResponse1.Content);
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
