@@ -1,5 +1,7 @@
 object dmIntuitAPI: TdmIntuitAPI
   OldCreateOrder = False
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
   Height = 379
   Width = 569
   object RESTResponse1: TRESTResponse

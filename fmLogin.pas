@@ -100,13 +100,13 @@ begin
   state := uri.ParameterByName['state'];
   dmIntuitAPI.RealmId := uri.ParameterByName['realmId'];
 
-  Form1.OAuth2Authenticator1.AuthCode := code;
+  dmIntuitAPI.OAuth2Authenticator1.AuthCode := code;
   Form1.Memo1.Lines.Add('url:'+URL);
 
-  Form1.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
+  dmIntuitAPI.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
   Form1.Memo1.Lines.Add('Access Granted');
-  Form1.Memo1.Lines.Add(Form1.OAuth2Authenticator1.AccessToken);
-  FIniFile.WriteString('Authentication', 'RefreshToken', Form1.OAuth2Authenticator1.RefreshToken);
+  Form1.Memo1.Lines.Add(dmIntuitAPI.OAuth2Authenticator1.AccessToken);
+  FIniFile.WriteString('Authentication', 'RefreshToken', dmIntuitAPI.OAuth2Authenticator1.RefreshToken);
   Close;
 end;
 
@@ -144,12 +144,12 @@ begin
   state := uri.ParameterByName['state'];
   dmIntuitAPI.RealmId := uri.ParameterByName['realmId'];
 
-  Form1.OAuth2Authenticator1.AuthCode := code;
+  dmIntuitAPI.OAuth2Authenticator1.AuthCode := code;
   Form1.Memo1.Lines.Add('url:'+URL);
 
-  Form1.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
+  dmIntuitAPI.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
   Form1.Memo1.Lines.Add('Access Granted');
-  Form1.Memo1.Lines.Add(Form1.OAuth2Authenticator1.AccessToken);
+  Form1.Memo1.Lines.Add(dmIntuitAPI.OAuth2Authenticator1.AccessToken);
   Close;
 end;
 

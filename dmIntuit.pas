@@ -9,10 +9,14 @@ uses
   , System.IOUtils
   , REST.Types
   , REST.Client
+  , REST.Authenticator.OAuth
+  , System.Net.URLClient
   , Data.Bind.Components
   , Data.Bind.ObjectScope
   , JSON.InvoiceList
   , JSON.AttachableList
+  , OAuth2.Intuit
+  , fmLogin
   ;
 
 type
@@ -22,16 +26,22 @@ type
     RESTResponse1: TRESTResponse;
     RESTRequest1: TRESTRequest;
     RESTClient1: TRESTClient;
+    procedure DataModuleDestroy(Sender: TObject);
+    procedure DataModuleCreate(Sender: TObject);
   strict private
     FrealmId : String;
     FOnLog : TOnLogStatus;
+    FfrmLogin: TfrmLogin;
     procedure doLog(inText: string);
   private
     { Private declarations }
   public
     { Public declarations }
+    OAuth2Authenticator1: TIntuitOAuth2;
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
     procedure UploadAttachment(inFilename, inInvoiceID: string);
+    procedure ChangeRefreshTokenToAccessToken;
+    procedure ShowLoginForm;
   published
     property RealmId : string read FrealmId write FrealmId;
   end;
@@ -48,6 +58,37 @@ implementation
 uses
     secrets
   ;
+
+procedure TdmIntuitAPI.DataModuleDestroy(Sender: TObject);
+begin
+  FreeAndNil(OAuth2Authenticator1);
+  FreeAndNil(FfrmLogin);
+end;
+
+procedure TdmIntuitAPI.DataModuleCreate(Sender: TObject);
+begin
+  OAuth2Authenticator1 := TIntuitOAuth2.Create(nil);
+  OAuth2Authenticator1.AuthorizationEndpoint := 'https://appcenter.intuit.com/connect/oauth2';
+  OAuth2Authenticator1.AccessTokenEndpoint := 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
+
+  OAuth2Authenticator1.RedirectionEndpoint := 'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl';
+
+  OAuth2Authenticator1.Scope := 'com.intuit.quickbooks.accounting openid profile email phone address';
+  OAuth2Authenticator1.ClientID := SECRET_INTUIT_CLIENTID;
+  OAuth2Authenticator1.ClientSecret := SECRET_INTUIT_CLIENTSECRET;
+
+  OAuth2Authenticator1.ResponseType := TOAuth2ResponseType.rtCODE;
+
+  RESTClient1.Authenticator := OAuth2Authenticator1;
+  FfrmLogin := TfrmLogin.Create(nil);
+end;
+
+procedure TdmIntuitAPI.ChangeRefreshTokenToAccessToken;
+begin
+  OAuth2Authenticator1.RefreshToken := FfrmLogin.GetRefreshToken;
+  RealmId := SECRET_REALMID;
+  OAuth2Authenticator1.ChangeRefreshTokenToAccesToken;
+end;
 
 function TdmIntuitAPI.CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
 var
@@ -98,6 +139,21 @@ procedure TdmIntuitAPI.doLog(inText: string);
 begin
   if Assigned(FOnLog) then
     FOnLog(inText);
+end;
+
+procedure TdmIntuitAPI.ShowLoginForm;
+var
+  uri : TURI;
+begin
+  uri := TURI.Create('https://appcenter.intuit.com/connect/oauth2');
+  uri.AddParameter('client_id', SECRET_INTUIT_CLIENTID);
+  uri.AddParameter('client_secret', SECRET_INTUIT_CLIENTSECRET);
+  uri.AddParameter('scope', 'com.intuit.quickbooks.accounting');
+  uri.AddParameter('redirect_uri', SECRET_REDIRECT_URL);
+  uri.AddParameter('state', '2342342323');
+  uri.AddParameter('response_type', 'code');
+
+  FfrmLogin.Login(uri.ToString);
 end;
 
 procedure TdmIntuitAPI.UploadAttachment(inFilename:string; inInvoiceID:string);

@@ -38,7 +38,6 @@ uses
   , JSON.ChartOfAccountList
   , JSON.CustomerList
   , JSON.AttachableList
-  , fmLogin
   , PDFInvoices
   , dmIntuit
   ;
@@ -80,7 +79,6 @@ type
     btnAddInvoiceLine: TButton;
     FileListBox1: TFileListBox;
     DirectoryListBox1: TDirectoryListBox;
-    procedure FormDestroy(Sender: TObject);
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -94,11 +92,9 @@ type
     procedure FileListBoxEx1Change(Sender: TObject);
   private
     FInvoice : TPDFInvoice;
-    FfrmLogin: TfrmLogin;
     procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
   public
     { Public declarations }
-    OAuth2Authenticator1: TIntuitOAuth2;
   end;
 
 var
@@ -127,31 +123,9 @@ begin
   dmIntuitAPI.UploadAttachment(FileListBox1.FileName, edtInvoiceNo.Text);
 end;
 
-
 procedure TForm1.FormCreate(Sender: TObject);
 begin
-  OAuth2Authenticator1 := TIntuitOAuth2.Create(nil);
-  OAuth2Authenticator1.AuthorizationEndpoint := 'https://appcenter.intuit.com/connect/oauth2';
-  OAuth2Authenticator1.AccessTokenEndpoint := 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
-
-  OAuth2Authenticator1.RedirectionEndpoint := 'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl';
-
-  OAuth2Authenticator1.Scope := 'com.intuit.quickbooks.accounting openid profile email phone address';
-  OAuth2Authenticator1.ClientID := SECRET_INTUIT_CLIENTID;
-  OAuth2Authenticator1.ClientSecret := SECRET_INTUIT_CLIENTSECRET;
-
-  OAuth2Authenticator1.ResponseType := TOAuth2ResponseType.rtCODE;
-
-  dmIntuitAPI.RESTClient1.Authenticator := OAuth2Authenticator1;
-
-  FfrmLogin := TfrmLogin.Create(nil);
-
   DirectoryListBox1.Directory := InitialDirectory;
-end;
-
-procedure TForm1.FormDestroy(Sender: TObject);
-begin
-  FreeAndNil(FfrmLogin);
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -247,9 +221,7 @@ end;
 
 procedure TForm1.btnAuthWithRefreshTokenClick(Sender: TObject);
 begin
-  OAuth2Authenticator1.RefreshToken := FfrmLogin.GetRefreshToken;
-  dmIntuitAPI.RealmId := SECRET_REALMID;
-  OAuth2Authenticator1.ChangeRefreshTokenToAccesToken;
+  dmIntuitAPI.ChangeRefreshTokenToAccessToken;
 end;
 
 procedure TForm1.SetupInvoice(invoice: TInvoiceClass; TxnDate:TDate; invoiceID:String);
@@ -403,18 +375,8 @@ begin
 end;
 
 procedure TForm1.Button2Click(Sender: TObject);
-var
-  uri : TURI;
 begin
-  uri := TURI.Create('https://appcenter.intuit.com/connect/oauth2');
-  uri.AddParameter('client_id', SECRET_INTUIT_CLIENTID);
-  uri.AddParameter('client_secret', SECRET_INTUIT_CLIENTSECRET);
-  uri.AddParameter('scope', 'com.intuit.quickbooks.accounting');
-  uri.AddParameter('redirect_uri', SECRET_REDIRECT_URL);
-  uri.AddParameter('state', '2342342323');
-  uri.AddParameter('response_type', 'code');
-
-  FfrmLogin.Login(uri.ToString);
+  dmIntuitAPI.ShowLoginForm;
 end;
 
 procedure TForm1.FileListBoxEx1Change(Sender: TObject);
