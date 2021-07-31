@@ -43,6 +43,7 @@ implementation
 uses
     System.Net.URLClient
   , fmIntuitDemo
+  , dmIntuit
   ;
 
 
@@ -97,7 +98,7 @@ begin
 
   code := uri.ParameterByName['code'];
   state := uri.ParameterByName['state'];
-  Form1.RealmId := uri.ParameterByName['realmId'];
+  dmIntuitAPI.RealmId := uri.ParameterByName['realmId'];
 
   Form1.OAuth2Authenticator1.AuthCode := code;
   Form1.Memo1.Lines.Add('url:'+URL);
@@ -141,7 +142,7 @@ begin
 
   code := uri.ParameterByName['code'];
   state := uri.ParameterByName['state'];
-  Form1.RealmId := uri.ParameterByName['realmId'];
+  dmIntuitAPI.RealmId := uri.ParameterByName['realmId'];
 
   Form1.OAuth2Authenticator1.AuthCode := code;
   Form1.Memo1.Lines.Add('url:'+URL);

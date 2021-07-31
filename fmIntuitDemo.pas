@@ -40,19 +40,17 @@ uses
   , JSON.AttachableList
   , fmLogin
   , PDFInvoices
+  , dmIntuit
   ;
 
 type
   TForm1 = class(TForm)
-    RESTClient1: TRESTClient;
-    RESTRequest1: TRESTRequest;
     Button1: TButton;
     Button3: TButton;
     btnListCustomer: TButton;
     btnListInvoice: TButton;
     btnAuthWithRefreshToken: TButton;
     btnCreateInvoiceFromObject: TButton;
-    RESTResponse1: TRESTResponse;
     GridPanel1: TGridPanel;
     GridPanel2: TGridPanel;
     btnAttachFile: TButton;
@@ -95,17 +93,12 @@ type
     procedure Button2Click(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
   private
-    FrealmId : String;
     FInvoice : TPDFInvoice;
     FfrmLogin: TfrmLogin;
-    function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
     procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
-    procedure UploadAttachment(inFilename, inInvoiceID: string);
   public
     { Public declarations }
     OAuth2Authenticator1: TIntuitOAuth2;
-  published
-    property RealmId : string read FrealmId write FrealmId;
   end;
 
 var
@@ -131,75 +124,9 @@ begin
     ShowMessage('Please Select a file first');
     Exit;
   end;
-  UploadAttachment(FileListBox1.FileName, edtInvoiceNo.Text);
+  dmIntuitAPI.UploadAttachment(FileListBox1.FileName, edtInvoiceNo.Text);
 end;
 
-procedure TForm1.UploadAttachment(inFilename:string; inInvoiceID:string);
-var
-  attachable : TAttachableClass;
-  attachableRefArr : TArray<TAttachableRefClass>;
-  attachableRef : TAttachableRefClass;
-  attachJSON : TJSONObject;
-  RequestStream : TStringStream;
-  param : TRESTRequestParameter;
-begin
-  if not TFile.Exists(inFilename) then
-  begin
-    raise Exception.Create('File Does not exist - ' + inFilename);
-  end;
-
-  attachable := TAttachableClass.Create;
-  attachable.ContentType := 'application/pdf';
-  attachable.FileName := ExtractFileName(inFilename);
-
-  attachableRefArr := TArray<TAttachableRefClass>.Create();
-  SetLength(attachableRefArr, 1);
-  attachableRef := TAttachableRefClass.Create;
-
-  attachableRefArr[0] := attachableRef;
-
-  attachableRef.EntityRef.&type := 'Invoice';
-  attachableRef.EntityRef.value := inInvoiceID;
-  attachableRef.IncludeOnSend := False;
-
-  attachable.AttachableRef := attachableRefArr;
-
-  RESTRequest1.Method := rmPOST;
-  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/upload';
-
-  Memo1.Lines.Add(attachable.ToJsonString);
-  Memo1.Lines.Add('--------');
-
-  attachJSON := TJSONObject.ParseJSONValue(attachable.ToJsonString) as TJSONObject;
-
-  attachJSON.RemovePair('MetaData');
-  attachJSON.RemovePair('Id');
-  attachJSON.RemovePair('Size');
-  attachJSON.RemovePair('TempDownloadUri');
-  attachJSON.RemovePair('domain');
-  attachJSON.RemovePair('sparse');
-  attachJSON.RemovePair('SyncToken');
-
-  RESTRequest1.ClearBody;
-  // This workaround is required to get around a bug in the Delphi REST Components
-  param := RESTRequest1.Params.AddItem('file_metadata_01', '', TRESTRequestParameterKind.pkREQUESTBODY,
-      [], TRESTContentType.ctAPPLICATION_JSON);
-  RequestStream := TStringStream.Create;
-  try
-    RequestStream.WriteString(attachjson.ToJSON);
-    param.SetStream(RequestStream);
-  finally
-    FreeAndNil(RequestStream);
-  end;
-  // End workaround
-
-  RESTRequest1.AddFile('file_content_01', inFilename, TRESTContentType.ctAPPLICATION_PDF);
-  RESTRequest1.Execute;
-
-  Memo1.Lines.Add(attachJSON.ToJSON);
-  Memo1.Lines.Add('--------');
-  Memo1.Lines.Add(RESTResponse1.Content);
-end;
 
 procedure TForm1.FormCreate(Sender: TObject);
 begin
@@ -215,7 +142,7 @@ begin
 
   OAuth2Authenticator1.ResponseType := TOAuth2ResponseType.rtCODE;
 
-  RESTClient1.Authenticator := OAuth2Authenticator1;
+  dmIntuitAPI.RESTClient1.Authenticator := OAuth2Authenticator1;
 
   FfrmLogin := TfrmLogin.Create(nil);
 
@@ -229,7 +156,6 @@ end;
 
 procedure TForm1.Button3Click(Sender: TObject);
 var
-  crlf : string;
   invoiceObj : TJSONObject;
   invoiceLine : TJSONObject;
   invoiceLines : TJSONArray;
@@ -237,8 +163,7 @@ var
   ItemRef : TJSONObject;
   CustomerRef : TJSONObject;
 begin
-  crlf := #10 + #13;
-  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/invoice';
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/' + dmIntuitAPI.RealmId + '/invoice';
   invoiceObj := TJSONObject.Create;
   invoiceLines := TJSONArray.Create;
 
@@ -265,11 +190,9 @@ begin
 
   invoiceObj.AddPair('CustomerRef', CustomerRef);
 
-  RESTRequest1.Client.ProxyServer := 'localhost';
-  RESTRequest1.Client.ProxyPort := 5555;
-  RESTRequest1.Method := rmPOST;
-  RESTRequest1.Execute;
-  Memo1.Lines.Add(RESTRequest1.Response.Content);
+  dmIntuitAPI.RESTRequest1.Method := rmPOST;
+  dmIntuitAPI.RESTRequest1.Execute;
+  Memo1.Lines.Add(dmIntuitAPI.RESTRequest1.Response.Content);
 end;
 
 procedure TForm1.btnListCustomerClick(Sender: TObject);
@@ -277,11 +200,11 @@ var
   customers : TCustomerListClass;
   i : Integer;
 begin
-  RESTRequest1.Method := rmGET;
-  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
-  RESTRequest1.Execute;
+  dmIntuitAPI.RESTRequest1.Method := rmGET;
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/' + dmIntuitAPI.RealmId + '/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
+  dmIntuitAPI.RESTRequest1.Execute;
 
-  customers := TCustomerListClass.FromJsonString(RESTRequest1.Response.Content);
+  customers := TCustomerListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
 
   for i := 0 to Length(customers.QueryResponse.Customer) - 1 do
   begin
@@ -302,11 +225,11 @@ Id: 90
 DisplayName: TEST
 Balance: 0
 }
-  RESTRequest1.Method := rmGET;
-  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/query?query=select * from Invoice Where Id > ' + QuotedStr('166');
-  RESTRequest1.Execute;
+  dmIntuitAPI.RESTRequest1.Method := rmGET;
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/' + dmIntuitAPI.RealmId + '/query?query=select * from Invoice Where Id > ' + QuotedStr('166');
+  dmIntuitAPI.RESTRequest1.Execute;
   try
-    invoiceList := TJSONInvoiceListClass.FromJsonString(RESTRequest1.Response.Content);
+    invoiceList := TJSONInvoiceListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
     Memo1.Lines.Add('Invoice Count: ' + Length(invoiceList.QueryResponse.Invoice).ToString);
     for i := 0 to Length(invoiceList.QueryResponse.Invoice) - 1 do
     begin
@@ -325,7 +248,7 @@ end;
 procedure TForm1.btnAuthWithRefreshTokenClick(Sender: TObject);
 begin
   OAuth2Authenticator1.RefreshToken := FfrmLogin.GetRefreshToken;
-  FrealmID := SECRET_REALMID;
+  dmIntuitAPI.RealmId := SECRET_REALMID;
   OAuth2Authenticator1.ChangeRefreshTokenToAccesToken;
 end;
 
@@ -404,7 +327,7 @@ begin
   lineItems[2] := lineItem;
 
   invoice.Line := lineItems;
-  CreateInvoice(invoice);
+  dmIntuitAPI.CreateInvoice(invoice);
 end;
 
 procedure TForm1.btnUploadInvoiceClick(Sender: TObject);
@@ -435,8 +358,8 @@ begin
     Inc(cnt);
   end;
 
-  SetLength(lineItems, cnt-1);
-  for i := 1 to cnt-2 do
+  SetLength(lineItems, cnt - 1);
+  for i := 1 to cnt - 2 do
   begin
     lineItem := TLineClass.Create;
     lineItem.Amount := StrToFloat(StringGrid1.Cells[4, i]);
@@ -468,10 +391,10 @@ begin
 
   invoice.Line := lineItems;
   Memo1.Lines.Add(invoice.ToJsonString);
-  returnedInvoice := CreateInvoice(invoice);
+  returnedInvoice := dmIntuitAPI.CreateInvoice(invoice);
 
   if returnedInvoice.Id.Length > 0 then
-    UploadAttachment(FileListBox1.FileName, returnedInvoice.Id);
+    dmIntuitAPI.UploadAttachment(FileListBox1.FileName, returnedInvoice.Id);
 end;
 
 procedure TForm1.btnAddInvoiceLineClick(Sender: TObject);
@@ -492,50 +415,6 @@ begin
   uri.AddParameter('response_type', 'code');
 
   FfrmLogin.Login(uri.ToString);
-end;
-
-function TForm1.CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
-var
-  invoiceJSON: TJSONObject;
-  invoiceText: string;
-  retJSON : TJSONObject;
-begin
-  RESTRequest1.ResetToDefaults;
-  RESTResponse1.ResetToDefaults;
-
-  invoiceJSON := TJSONObject.ParseJSONValue(invoice.ToJsonString) as TJSONObject;
-  invoiceJSON.RemovePair('allowIPNPayment');
-  invoiceJSON.RemovePair('allowOnlineACHPayment');
-  invoiceJSON.RemovePair('allowOnlinePayment');
-  invoiceJSON.RemovePair('allowOnlineCreditCardPayment');
-  invoiceJSON.RemovePair('CreditCardPayment');
-  invoiceJSON.RemovePair('EmailStatus');
-  invoiceJSON.RemovePair('Balance');
-  invoiceJSON.RemovePair('Deposit');
-  invoiceJSON.RemovePair('DocNumber');
-  invoiceJSON.RemovePair('Id');
-  invoiceJSON.RemovePair('DueDate');
-  invoiceJSON.RemovePair('TxnSource');
-  invoiceJSON.RemovePair('GlobalTaxCalculation');
-  invoiceJSON.RemovePair('MetaData');
-  invoiceJSON.RemovePair('TotalAmt');
-  invoiceJSON.RemovePair('domain');
-  invoiceJSON.RemovePair('sparse');
-  invoiceText := invoiceJSON.ToJSON;
-  Memo1.Lines.Add(invoiceText);
-  RESTRequest1.Method := rmPost;
-  FrealmID := SECRET_REALMID;
-  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/invoice?minorversion=38';
-  RESTRequest1.AddBody(invoiceText, ctAPPLICATION_JSON);
-  RESTRequest1.Execute;
-
-  Memo1.Lines.Add(RESTResponse1.Content);
-  retJSON := TJSONObject.ParseJSONValue(RESTResponse1.Content) as TJSONObject;
-  try
-  Result := TInvoiceClass.FromJsonString(retJSON.Values['Invoice'].ToJSON);
-  finally
-    FreeAndNil(retJSON);
-  end;
 end;
 
 procedure TForm1.FileListBoxEx1Change(Sender: TObject);
@@ -571,8 +450,7 @@ begin
   StringGrid1.Cells[1, 0] := 'Description';
   StringGrid1.Cells[2, 0] := 'Qty';
   StringGrid1.Cells[3, 0] := 'Rate';
-  StringGrid1.Cells[4, 0] := 'Amount'
-  ;
+  StringGrid1.Cells[4, 0] := 'Amount';
 
   StringGrid1.ColWidths[1] := 600;
   for i := 0 to FInvoice.FPages.Count - 1 do

@@ -12,6 +12,7 @@ uses
   secrets in 'secrets.pas',
   PdfInvoices in '..\tcginvoices\PdfInvoices.pas',
   DebenuPDFLibraryDLL0916 in '..\components\QuickPDF\DLL\Import\Delphi\DebenuPDFLibraryDLL0916.pas',
+  dmIntuit in 'dmIntuit.pas' {dmIntuitAPI: TDataModule},
   fmLogin in 'fmLogin.pas' {frmLogin};
 
 {$R *.res}
@@ -19,6 +20,7 @@ uses
 begin
   Application.Initialize;
   Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TdmIntuitAPI, dmIntuitAPI);
   Application.CreateForm(TForm1, Form1);
   Application.Run;
 end.
