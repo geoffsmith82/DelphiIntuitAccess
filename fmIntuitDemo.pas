@@ -342,7 +342,7 @@ end;
 
 procedure TForm1.btnAuthWithRefreshTokenClick(Sender: TObject);
 begin
-  OAuth2Authenticator1.RefreshToken := SECRET_REFRESHTOKEN;
+  OAuth2Authenticator1.RefreshToken := FfrmLogin.GetRefreshToken;
   FrealmID := SECRET_REALMID;
   OAuth2Authenticator1.ChangeRefreshTokenToAccesToken;
 end;
