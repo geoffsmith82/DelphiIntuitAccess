@@ -69,3 +69,4 @@ __recovery/
 modules/
 .hg
 secrets.pas
+Win32/Debug/intuitaccess.exe.WebView2
