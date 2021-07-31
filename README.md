@@ -15,3 +15,7 @@ What does this example show
   - Listing Quickbooks invoices
   - Attaching and uploading a file to an invoice in Quickbooks
   - Uploading Invoice data
+  
+What you need to do
+  - rename secrets.example.pas to secrets.pas
+  - update constants with your correct values
