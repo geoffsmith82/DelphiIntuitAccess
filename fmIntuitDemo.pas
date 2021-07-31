@@ -53,7 +53,6 @@ uses
   , JSON.ChartOfAccountList
   , JSON.CustomerList
   , JSON.AttachableList
-  , DebenuPDFLibraryDLL0916
   , fmLogin
   , PDFInvoices
   ;
@@ -116,7 +115,6 @@ type
   private
     FrealmId : String;
     FInvoice : TPDFInvoice;
-    FPdf : TDebenuPDFLibraryDLL0916;
     FfrmLogin: TfrmLogin;
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
     procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
@@ -238,11 +236,7 @@ begin
   RESTClient1.Authenticator := OAuth2Authenticator1;
 
   FfrmLogin := TfrmLogin.Create(nil);
-  FPdf := TDebenuPDFLibraryDLL0916.Create(QUICKPDF_DLL_PATH);
-  if(FPdf.UnlockKey(SECRET_QUICKPDF_KEY) = 1) then
-  begin
-    OutputDebugString(PChar('Unlocked'));
-  end;
+
   DirectoryListBoxEx1.Directory := InitialDirectory;
 end;
 
@@ -575,7 +569,7 @@ begin
     Exit;
 
 
-  FInvoice := TPDFInvoice.Create(FPdf, FileListBoxEx1.FileName);
+  FInvoice := TPDFInvoice.Create(FileListBoxEx1.FileName);
   FInvoice.Memo1 := Memo1;
   FInvoice.Memo2 := Memo1;
   FInvoice.StatusBar1 := StatusBar1;
