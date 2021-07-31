@@ -118,12 +118,12 @@ object Form1: TForm1
       ControlCollection = <
         item
           Column = 0
-          Control = DirectoryListBoxEx1
+          Control = DirectoryListBox1
           Row = 0
         end
         item
           Column = 0
-          Control = FileListBoxEx1
+          Control = FileListBox1
           Row = 1
         end>
       RowCollection = <
@@ -137,30 +137,32 @@ object Form1: TForm1
           SizeStyle = ssAuto
         end>
       TabOrder = 0
-      object DirectoryListBoxEx1: TDirectoryListBoxEx
+      object DirectoryListBox1: TDirectoryListBox
         Left = 1
         Top = 1
         Width = 516
         Height = 236
         Align = alClient
-        Anchors = []
+        FileList = FileListBox1
         TabOrder = 0
-        OnChange = JvDirectoryListBox1Change
-        DirectOpen = False
-        Version = '1.3.0.3'
+        ExplicitLeft = 0
+        ExplicitTop = 0
+        ExplicitHeight = 97
       end
-      object FileListBoxEx1: TFileListBoxEx
+      object FileListBox1: TFileListBox
         Left = 1
         Top = 237
         Width = 516
         Height = 237
         Align = alClient
-        Anchors = []
+        ItemHeight = 13
         Mask = '*.pdf'
-        ShowGlyphs = True
         TabOrder = 1
         OnChange = FileListBoxEx1Change
-        Version = '1.3.0.3'
+        ExplicitLeft = 288
+        ExplicitTop = 264
+        ExplicitWidth = 145
+        ExplicitHeight = 97
       end
     end
     object PageControl1: TPageControl
@@ -1306,14 +1308,6 @@ object Form1: TForm1
     Caption = 'Add Invoice Line'
     TabOrder = 10
     OnClick = btnAddInvoiceLineClick
-  end
-  object FileListBox1: TFileListBox
-    Left = 336
-    Top = 64
-    Width = 145
-    Height = 97
-    ItemHeight = 13
-    TabOrder = 11
   end
   object RESTClient1: TRESTClient
     BaseURL = 'https://quickbooks.api.intuit.com'

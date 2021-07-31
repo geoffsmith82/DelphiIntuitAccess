@@ -24,7 +24,6 @@ uses
   , REST.Types
   , Data.Bind.Components
   , Data.Bind.ObjectScope
-  , FlCtrlEx
   , AdvSmoothEdit
   , AdvSmoothEditButton
   , AdvSmoothDatePicker
@@ -56,8 +55,6 @@ type
     RESTResponse1: TRESTResponse;
     GridPanel1: TGridPanel;
     GridPanel2: TGridPanel;
-    DirectoryListBoxEx1: TDirectoryListBoxEx;
-    FileListBoxEx1: TFileListBoxEx;
     btnAttachFile: TButton;
     StatusBar1: TStatusBar;
     PageControl1: TPageControl;
@@ -84,6 +81,7 @@ type
     btnUploadInvoice: TButton;
     btnAddInvoiceLine: TButton;
     FileListBox1: TFileListBox;
+    DirectoryListBox1: TDirectoryListBox;
     procedure FormDestroy(Sender: TObject);
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
@@ -96,7 +94,6 @@ type
     procedure btnAddInvoiceLineClick(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
-    procedure JvDirectoryListBox1Change(Sender: TObject);
   private
     FrealmId : String;
     FInvoice : TPDFInvoice;
@@ -129,12 +126,12 @@ uses
 
 procedure TForm1.btnAttachFileClick(Sender: TObject);
 begin
-  if FileListBoxEx1.FileName.Length = 0 then
+  if FileListBox1.FileName.Length = 0 then
   begin
     ShowMessage('Please Select a file first');
     Exit;
   end;
-  UploadAttachment(FileListBoxEx1.FileName, edtInvoiceNo.Text);
+  UploadAttachment(FileListBox1.FileName, edtInvoiceNo.Text);
 end;
 
 procedure TForm1.UploadAttachment(inFilename:string; inInvoiceID:string);
@@ -143,7 +140,6 @@ var
   attachableRefArr : TArray<TAttachableRefClass>;
   attachableRef : TAttachableRefClass;
   attachJSON : TJSONObject;
-  ResponseStream : TStringStream;
   RequestStream : TStringStream;
   param : TRESTRequestParameter;
 begin
@@ -223,7 +219,7 @@ begin
 
   FfrmLogin := TfrmLogin.Create(nil);
 
-  DirectoryListBoxEx1.Directory := InitialDirectory;
+  DirectoryListBox1.Directory := InitialDirectory;
 end;
 
 procedure TForm1.FormDestroy(Sender: TObject);
@@ -475,7 +471,7 @@ begin
   returnedInvoice := CreateInvoice(invoice);
 
   if returnedInvoice.Id.Length > 0 then
-    UploadAttachment(FileListBoxEx1.FileName, returnedInvoice.Id);
+    UploadAttachment(FileListBox1.FileName, returnedInvoice.Id);
 end;
 
 procedure TForm1.btnAddInvoiceLineClick(Sender: TObject);
@@ -540,7 +536,6 @@ begin
   finally
     FreeAndNil(retJSON);
   end;
-
 end;
 
 procedure TForm1.FileListBoxEx1Change(Sender: TObject);
@@ -551,11 +546,11 @@ var
 begin
   if Assigned(FInvoice) then
     FreeAndNil(FInvoice);
-  if FileListBoxEx1.FileName = '' then
+  if FileListBox1.FileName = '' then
     Exit;
 
 
-  FInvoice := TPDFInvoice.Create(FileListBoxEx1.FileName);
+  FInvoice := TPDFInvoice.Create(FileListBox1.FileName);
   FInvoice.Memo1 := Memo1;
   FInvoice.Memo2 := Memo1;
   FInvoice.StatusBar1 := StatusBar1;
@@ -591,14 +586,8 @@ begin
       StringGrid1.Cells[4, l] := CurrToStr(FInvoice.FPages[i].FLineItems[j].Amount);
       Inc(l);
     end;
-
   end;
 
-end;
-
-procedure TForm1.JvDirectoryListBox1Change(Sender: TObject);
-begin
-  FileListBoxEx1.Directory := DirectoryListBoxEx1.Directory;
 end;
 
 end.
