@@ -1,5 +1,7 @@
 # DelphiIntuitAccess
-Demonstrate OAuth2 Authentication to Intuit online API
+Demonstrate OAuth2 Authentication to Intuit online API.
+
+I created this program to turn a Recipient Created Tax Invoice (RCTI) into a Tax Invoice in Quickbooks.  My code takes a PDF and extracts out most of the data, displaying it on the form for me to verify that it has correctly decoded it.  When I have checked it, I can use it to create an invoice in Quickbooks and upload the PDF RCTI as an attachment.  The sample does not include the class that handles the PDF Decoding, as it needs QuickPDF and the PDF format that it decodes is particular to my customer.
 
 ## Dependencies
   - TMS Grids
