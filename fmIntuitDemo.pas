@@ -131,7 +131,8 @@ var
   ItemRef : TJSONObject;
   CustomerRef : TJSONObject;
 begin
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/' + dmIntuitAPI.RealmId + '/invoice';
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/invoice';
+  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
   invoiceObj := TJSONObject.Create;
   invoiceLines := TJSONArray.Create;
 
@@ -168,8 +169,10 @@ var
   customers : TCustomerListClass;
   i : Integer;
 begin
+  dmIntuitAPI.RESTRequest1.ResetToDefaults;
   dmIntuitAPI.RESTRequest1.Method := rmGET;
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/' + dmIntuitAPI.RealmId + '/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
+  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
   dmIntuitAPI.RESTRequest1.Execute;
 
   customers := TCustomerListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
@@ -194,7 +197,8 @@ DisplayName: TEST
 Balance: 0
 }
   dmIntuitAPI.RESTRequest1.Method := rmGET;
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/' + dmIntuitAPI.RealmId + '/query?query=select * from Invoice Where Id > ' + QuotedStr('166');
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Invoice Where Id > ' + QuotedStr('166');
+  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
   dmIntuitAPI.RESTRequest1.Execute;
   try
     invoiceList := TJSONInvoiceListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
