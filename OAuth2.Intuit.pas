@@ -36,7 +36,9 @@ implementation
 uses
   REST.Consts,
   REST.Types,
+  Windows,
   System.NetEncoding,
+  System.Net.URLClient,
   System.SysUtils,
   System.DateUtils;
 
@@ -49,8 +51,11 @@ var
   LToken: string;
   LIntValue: int64;
   AuthData : String;
+  url : TURI;
 begin
-
+  url := TURI.Create('http://localhost');
+  url.AddParameter('refresh_token', RefreshToken);
+  url.AddParameter('grant_type', 'refresh_token');
   // we do need an authorization-code here, because we want
   // to send it to the servce and exchange the code into an
   // access-token.
@@ -60,17 +65,14 @@ begin
 
   LClient := TRestClient.Create(AccessTokenEndpoint);
   try
-//    LClient.ProxyServer := 'localhost';
-//    LClient.ProxyPort := 5555;
     LRequest := TRESTRequest.Create(LClient); // The LClient now "owns" the Request and will free it.
     LRequest.Method := TRESTRequestMethod.rmPOST;
+    LRequest.AddParameter('', url.Query, TRESTRequestParameterKind.pkREQUESTBODY, [poDoNotEncode]);
 
-    LRequest.AddAuthParameter('refresh_token', RefreshToken, TRESTRequestParameterKind.pkGETorPOST);
-    LRequest.AddAuthParameter('grant_type', 'refresh_token', TRESTRequestParameterKind.pkGETorPOST);
 
     AuthData := 'Basic ' +TNetEncoding.Base64.Encode(ClientID+':'+ClientSecret);
     AuthData := AuthData.Replace(#10,'').Replace(#13,''); // remove crlf
-    LRequest.AddAuthParameter('Authorization', AuthData, TRESTRequestParameterKind.pkHTTPHEADER,[TRESTRequestParameterOption.poDoNotEncode]);
+    LRequest.AddAuthParameter('Authorization', AuthData, TRESTRequestParameterKind.pkHTTPHEADER, [TRESTRequestParameterOption.poDoNotEncode]);
 
     LRequest.Execute;
 
@@ -121,8 +123,14 @@ var
   LToken: string;
   LIntValue: int64;
   AuthData : String;
+  url : TURI;
 begin
+  url := TURI.Create('http://localhost');
+  url.AddParameter('grant_type', 'authorization_code');
+  url.AddParameter('code', AuthCode);
+  url.AddParameter('redirect_uri', RedirectionEndpoint);
 
+  OutputDebugString(PChar(url.Query));
   // we do need an authorization-code here, because we want
   // to send it to the servce and exchange the code into an
   // access-token.
@@ -132,19 +140,14 @@ begin
 
   LClient := TRestClient.Create(AccessTokenEndpoint);
   try
-//    LClient.ProxyServer := 'localhost';
-//    LClient.ProxyPort := 5555;
     LRequest := TRESTRequest.Create(LClient); // The LClient now "owns" the Request and will free it.
     LRequest.Method := TRESTRequestMethod.rmPOST;
 
-    LRequest.AddAuthParameter('code', AuthCode, TRESTRequestParameterKind.pkGETorPOST);
+    LRequest.AddParameter('', url.Query, TRESTRequestParameterKind.pkREQUESTBODY, [poDoNotEncode]);
 
-    LRequest.AddAuthParameter('redirect_uri', RedirectionEndpoint, TRESTRequestParameterKind.pkGETorPOST,[TRESTRequestParameterOption.poDoNotEncode]);
-    LRequest.AddAuthParameter('grant_type', 'authorization_code', TRESTRequestParameterKind.pkGETorPOST);
-
-    AuthData := 'Basic ' +TNetEncoding.Base64.Encode(ClientID+':'+ClientSecret);
+    AuthData := 'Basic ' +TNetEncoding.Base64.Encode(ClientID + ':' + ClientSecret);
     AuthData := AuthData.Replace(#10,'').Replace(#13,''); // remove crlf
-    LRequest.AddAuthParameter('Authorization', AuthData, TRESTRequestParameterKind.pkHTTPHEADER,[TRESTRequestParameterOption.poDoNotEncode]);
+    LRequest.AddAuthParameter('Authorization', AuthData, TRESTRequestParameterKind.pkHTTPHEADER, [TRESTRequestParameterOption.poDoNotEncode]);
 
     LRequest.Execute;
 

@@ -72,7 +72,7 @@ begin
   OAuth2Authenticator1.AuthorizationEndpoint := 'https://appcenter.intuit.com/connect/oauth2';
   OAuth2Authenticator1.AccessTokenEndpoint := 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
 
-  OAuth2Authenticator1.RedirectionEndpoint := 'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl';
+  OAuth2Authenticator1.RedirectionEndpoint := SECRET_REDIRECT_URL; //'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl';
 
   OAuth2Authenticator1.Scope := 'com.intuit.quickbooks.accounting openid profile email phone address';
   OAuth2Authenticator1.ClientID := SECRET_INTUIT_CLIENTID;
@@ -220,15 +220,15 @@ begin
 
   RESTRequest1.ClearBody;
   // This workaround is required to get around a bug in the Delphi REST Components
-  param := RESTRequest1.Params.AddItem('file_metadata_01', '', TRESTRequestParameterKind.pkREQUESTBODY,
+  param := RESTRequest1.Params.AddItem('file_metadata_01', attachjson.ToJSON, TRESTRequestParameterKind.pkREQUESTBODY,
       [], TRESTContentType.ctAPPLICATION_JSON);
-  RequestStream := TStringStream.Create;
+{  RequestStream := TStringStream.Create;
   try
     RequestStream.WriteString(attachjson.ToJSON);
     param.SetStream(RequestStream);
   finally
     FreeAndNil(RequestStream);
-  end;
+  end;}
   // End workaround
 
   RESTRequest1.AddFile('file_content_01', inFilename, TRESTContentType.ctAPPLICATION_PDF);
