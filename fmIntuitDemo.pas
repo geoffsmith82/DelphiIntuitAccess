@@ -8,6 +8,7 @@ uses
   , System.SysUtils
   , System.Variants
   , System.Classes
+  , System.RegularExpressions
   , Vcl.Graphics
   , Vcl.Controls
   , Vcl.Forms
@@ -21,26 +22,19 @@ uses
   , REST.Types
   , Data.Bind.Components
   , Data.Bind.ObjectScope
-  , AdvSmoothEdit
-  , AdvSmoothEditButton
-  , AdvSmoothDatePicker
-  , MoneyEdit
-  , AdvUtil
-  , AdvObj
-  , BaseGrid
-  , AdvGrid
   , JSON.InvoiceList
   , JSON.VendorList
   , JSON.ChartOfAccountList
   , JSON.CustomerList
   , JSON.AttachableList
+  , ArenaInvoice
   , PDFInvoices
   , dmIntuit
   ;
 
 type
   TForm1 = class(TForm)
-    Button1: TButton;
+    btnLogin: TButton;
     Button3: TButton;
     btnListCustomer: TButton;
     btnListInvoice: TButton;
@@ -54,19 +48,19 @@ type
     TabSheet1: TTabSheet;
     Memo1: TMemo;
     TabSheet2: TTabSheet;
-    InvoiceDateDatePicker: TAdvSmoothDatePicker;
+    InvoiceDateDatePicker: TDateTimePicker;
     Label1: TLabel;
-    InvoiceDateFromDatePicker: TAdvSmoothDatePicker;
+    InvoiceDateFromDatePicker: TDateTimePicker;
     Label2: TLabel;
-    InvoiceDateToPicker: TAdvSmoothDatePicker;
+    InvoiceDateToPicker: TDateTimePicker;
     Label3: TLabel;
     edtInvoiceNo: TEdit;
     Label4: TLabel;
-    meTotalHours: TMoneyEdit;
-    meTotalAmount: TMoneyEdit;
+    meTotalHours: TEdit;
+    meTotalAmount: TEdit;
     Label5: TLabel;
     Label6: TLabel;
-    StringGrid1: TAdvStringGrid;
+    StringGrid1: TStringGrid;
     Label7: TLabel;
     edtClientRef: TEdit;
     Label8: TLabel;
@@ -75,6 +69,8 @@ type
     btnAddInvoiceLine: TButton;
     FileListBox1: TFileListBox;
     DirectoryListBox1: TDirectoryListBox;
+    Button2: TButton;
+    GridPanel3: TGridPanel;
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -84,10 +80,11 @@ type
     procedure btnCreateInvoiceFromObjectClick(Sender: TObject);
     procedure btnUploadInvoiceClick(Sender: TObject);
     procedure btnAddInvoiceLineClick(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    procedure LoginClick(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
+    procedure JSONInvoiceClick(Sender: TObject);
   private
-    FInvoice : TPDFInvoice;
+  //  FInvoice : TPDFInvoice;
   public
     { Public declarations }
   end;
@@ -355,18 +352,14 @@ begin
   StringGrid1.RowCount := StringGrid1.RowCount + 1;
 end;
 
-procedure TForm1.Button2Click(Sender: TObject);
+procedure TForm1.LoginClick(Sender: TObject);
 begin
   dmIntuitAPI.ShowLoginForm;
 end;
 
 procedure TForm1.FileListBoxEx1Change(Sender: TObject);
-var
-  i : Integer;
-  l : Integer;
-  j : Integer;
 begin
-  if Assigned(FInvoice) then
+{  if Assigned(FInvoice) then
     FreeAndNil(FInvoice);
   if FileListBox1.FileName = '' then
     Exit;
@@ -407,7 +400,7 @@ begin
       StringGrid1.Cells[4, l] := CurrToStr(FInvoice.FPages[i].FLineItems[j].Amount);
       Inc(l);
     end;
-  end;
+  end; }
 end;
 
 end.

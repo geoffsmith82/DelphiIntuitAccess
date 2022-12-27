@@ -5,10 +5,8 @@ I created this program to turn a Recipient Created Tax Invoice (RCTI) into a Tax
 
   The sample does not include the class that handles the PDF Decoding, as it needs QuickPDF and the PDF format that it decodes is particular to my customer.
 
-## Dependencies
-  - TMS Grids
   
-This project wont compile by itself.  There is a object called TPDFInvoice that is not included.  All the code referencing this can be commented out however and you should still be able to get the sample to work.  If you don't have TMS Grids, you can also comment out the code relating to that - which will limit what the demo can do, although you will still be able to list customers and invoices.
+This project wont compile by itself.  There is a object called TPDFInvoice that is not included.  All the code referencing this can be commented out however and you should still be able to get the sample to work.  
 
 ## What does this example show
   - Initial OAuth2 Authentication flow with web browser.
