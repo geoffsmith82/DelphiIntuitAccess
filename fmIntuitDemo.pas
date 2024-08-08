@@ -170,6 +170,7 @@ begin
   dmIntuitAPI.RESTRequest1.Method := rmGET;
   dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
   dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
+  dmIntuitAPI.RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
   dmIntuitAPI.RESTRequest1.Execute;
 
   customers := TCustomerListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);

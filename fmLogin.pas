@@ -23,17 +23,14 @@ uses
 type
   TfrmLogin = class(TForm)
     EdgeBrowser1: TEdgeBrowser;
-    procedure FormDestroy(Sender: TObject);
-    procedure FormCreate(Sender: TObject);
     procedure EdgeBrowser1NavigationCompleted(Sender: TCustomEdgeBrowser; IsSuccess: Boolean; WebErrorStatus: TOleEnum);
     procedure EdgeBrowser1NavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
   private
     { Private declarations }
-    FIniFile : TIniFile;
+  //  FIniFile : TIniFile;
   public
     { Public declarations }
     procedure Login(url:string);
-    function GetRefreshToken: string;
   end;
 
 implementation
@@ -46,24 +43,6 @@ uses
   , dmIntuit
   ;
 
-
-procedure TfrmLogin.FormDestroy(Sender: TObject);
-begin
-  FreeAndNil(FIniFile);
-end;
-
-function TfrmLogin.GetRefreshToken: string;
-begin
-  Result := FIniFile.ReadString('Authentication', 'RefreshToken', '');
-end;
-
-procedure TfrmLogin.FormCreate(Sender: TObject);
-var
-  iniPath : string;
-begin
-  iniPath := ChangeFileExt(ParamStr(0), '.ini');
-  FIniFile := TIniFile.Create(iniPath);
-end;
 
 procedure TfrmLogin.EdgeBrowser1NavigationCompleted(Sender: TCustomEdgeBrowser;
     IsSuccess: Boolean; WebErrorStatus: TOleEnum);
@@ -105,8 +84,12 @@ begin
 
   dmIntuitAPI.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
   Form1.Memo1.Lines.Add('Access Granted');
+  Form1.Memo1.Lines.Add('RefreshToken=' + dmIntuitAPI.OAuth2Authenticator1.RefreshToken);
+  Form1.Memo1.Lines.Add('Access Token');
+
   Form1.Memo1.Lines.Add(dmIntuitAPI.OAuth2Authenticator1.AccessToken);
-  FIniFile.WriteString('Authentication', 'RefreshToken', dmIntuitAPI.OAuth2Authenticator1.RefreshToken);
+  dmIntuitAPI.TokenManager.StoreEncryptedToken(dmIntuitAPI.OAuth2Authenticator1.RefreshToken);
+  dmIntuitAPI.TokenManager.StoreExtraData('RealmId', dmIntuitAPI.RealmId);
   Close;
 end;
 
@@ -150,6 +133,7 @@ begin
   dmIntuitAPI.OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
   Form1.Memo1.Lines.Add('Access Granted');
   Form1.Memo1.Lines.Add(dmIntuitAPI.OAuth2Authenticator1.AccessToken);
+  dmIntuitAPI.TokenManager.StoreEncryptedToken(dmIntuitAPI.OAuth2Authenticator1.RefreshToken);
   Close;
 end;
 

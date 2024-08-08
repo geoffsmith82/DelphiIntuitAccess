@@ -1,5 +1,4 @@
 object dmIntuitAPI: TdmIntuitAPI
-  OldCreateOrder = False
   OnCreate = DataModuleCreate
   OnDestroy = DataModuleDestroy
   Height = 379
@@ -19,6 +18,7 @@ object dmIntuitAPI: TdmIntuitAPI
   object RESTClient1: TRESTClient
     BaseURL = 'https://quickbooks.api.intuit.com'
     Params = <>
+    SynchronizedEvents = False
     Left = 320
     Top = 112
   end

@@ -10,10 +10,9 @@ uses
   JSON.ChartOfAccountList in 'JSON.ChartOfAccountList.pas',
   JSON.CustomerList in 'JSON.CustomerList.pas',
   secrets in 'secrets.pas',
-  PdfInvoices in '..\tcginvoices\PdfInvoices.pas',
-  DebenuPDFLibraryDLL0916 in '..\components\QuickPDF\DLL\Import\Delphi\DebenuPDFLibraryDLL0916.pas',
   dmIntuit in 'dmIntuit.pas' {dmIntuitAPI: TDataModule},
-  fmLogin in 'fmLogin.pas' {frmLogin};
+  fmLogin in 'fmLogin.pas' {frmLogin},
+  TokenManager in 'TokenManager.pas';
 
 {$R *.res}
 

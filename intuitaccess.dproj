@@ -138,6 +138,7 @@
             <Form>frmLogin</Form>
             <FormType>dfm</FormType>
         </DCCReference>
+        <DCCReference Include="TokenManager.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

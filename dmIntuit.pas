@@ -16,6 +16,7 @@ uses
   , JSON.InvoiceList
   , JSON.AttachableList
   , OAuth2.Intuit
+  , TokenManager
   , fmLogin
   ;
 
@@ -32,6 +33,7 @@ type
     FrealmId : String;
     FOnLog : TOnLogStatus;
     FfrmLogin: TfrmLogin;
+    FTokenManager: TTokenManager;
     procedure doLog(inText: string);
   private
     { Private declarations }
@@ -45,6 +47,7 @@ type
     procedure ShowLoginForm;
   published
     property RealmId : string read FrealmId write FrealmId;
+    property TokenManager: TTokenManager read FTokenManager;
   end;
 
 var
@@ -64,6 +67,7 @@ procedure TdmIntuitAPI.DataModuleDestroy(Sender: TObject);
 begin
   FreeAndNil(OAuth2Authenticator1);
   FreeAndNil(FfrmLogin);
+  FreeAndNil(FTokenManager);
 end;
 
 procedure TdmIntuitAPI.DataModuleCreate(Sender: TObject);
@@ -74,20 +78,22 @@ begin
 
   OAuth2Authenticator1.RedirectionEndpoint := SECRET_REDIRECT_URL; //'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl';
 
-  OAuth2Authenticator1.Scope := 'com.intuit.quickbooks.accounting openid profile email phone address';
+  OAuth2Authenticator1.Scope := 'com.intuit.quickbooks.accounting openid';
   OAuth2Authenticator1.ClientID := SECRET_INTUIT_CLIENTID;
   OAuth2Authenticator1.ClientSecret := SECRET_INTUIT_CLIENTSECRET;
 
   OAuth2Authenticator1.ResponseType := TOAuth2ResponseType.rtCODE;
-
+  FTokenManager := TTokenManager.Create(ChangeFileExt(ParamStr(0), '.ini'));
+  OAuth2Authenticator1.RefreshToken := FTokenManager.RetrieveDecryptedToken;
   RESTClient1.Authenticator := OAuth2Authenticator1;
   FfrmLogin := TfrmLogin.Create(nil);
+  RESTClient1.BaseURL := 'https://sandbox-quickbooks.api.intuit.com';
 end;
 
 procedure TdmIntuitAPI.ChangeRefreshTokenToAccessToken;
 begin
-  OAuth2Authenticator1.RefreshToken := FfrmLogin.GetRefreshToken;
-  RealmId := SECRET_REALMID;
+  OAuth2Authenticator1.RefreshToken := TokenManager.RetrieveDecryptedToken;
+  RealmId := TokenManager.RetrieveExtraData('RealmId');
   OAuth2Authenticator1.ChangeRefreshTokenToAccesToken;
 end;
 
@@ -121,7 +127,7 @@ begin
   invoiceText := invoiceJSON.ToJSON;
   doLog(invoiceText);
   RESTRequest1.Method := rmPost;
-  FrealmID := SECRET_REALMID;
+  FrealmID := FTokenManager.RetrieveExtraData('RealmId');
   RESTRequest1.Resource := '/v3/company/' + FrealmId + '/invoice?minorversion=38';
   RESTRequest1.AddBody(invoiceText, ctAPPLICATION_JSON);
   RESTRequest1.Execute;
