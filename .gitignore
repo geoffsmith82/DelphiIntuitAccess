@@ -70,3 +70,4 @@ modules/
 .hg
 secrets.pas
 Win32/Debug/intuitaccess.exe.WebView2
+Win32/Debug/intuitaccess.ini

@@ -5,17 +5,21 @@ I created this program to turn a Recipient Created Tax Invoice (RCTI) into a Tax
 
   The sample does not include the class that handles the PDF Decoding, as it needs QuickPDF and the PDF format that it decodes is particular to my customer.
 
+The code takes a list of Pdf files and looks for a json file of the same as a pdf file.  It reads this information in ready for creating the actual invoice in Quickbooks.    
   
-This project wont compile by itself.  There is a object called TPDFInvoice that is not included.  All the code referencing this can be commented out however and you should still be able to get the sample to work.  
+
 
 ## What does this example show
   - Initial OAuth2 Authentication flow with web browser.
-  - OAuth2 Authentication using stored refresh_token.
-  - Listing Quickbooks customers
-  - Listing Quickbooks invoices
+	- Uses the new TEdgeBrowser component in recent versions of delphi.  Make sure you have ```WebView2Loader.dll``` in the same directory as the executable file
+  - OAuth2 Authentication using stored refresh_token that are encrypted using Windows Encryption API's.
+  - Listing Quickbooks Customers
+  - Listing Quickbooks Invoices
+  - Listing Quickbooks Suppliers
   - Attaching and uploading a file to an invoice in Quickbooks
   - Uploading Invoice data
   
 ## What you need to do to get this to work
   - rename secrets.example.pas to secrets.pas
   - update constants with your correct values
+  - You will need a ClientID and ClientSecret from Intuit. See [Intuit Dashboard](https://developer.intuit.com/app/developer/dashboard)
