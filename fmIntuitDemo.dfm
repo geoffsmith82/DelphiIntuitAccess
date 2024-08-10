@@ -10,6 +10,7 @@ object Form1: TForm1
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
+  Menu = MainMenu
   Position = poDesigned
   OnCreate = FormCreate
   TextHeight = 13
@@ -81,6 +82,8 @@ object Form1: TForm1
           SizeStyle = ssAuto
         end>
       TabOrder = 0
+      ExplicitWidth = 430
+      ExplicitHeight = 398
       object DirectoryListBox1: TDirectoryListBox
         Left = 1
         Top = 1
@@ -89,8 +92,7 @@ object Form1: TForm1
         Align = alClient
         FileList = FileListBox1
         TabOrder = 0
-        ExplicitLeft = 0
-        ExplicitTop = 5
+        ExplicitWidth = 428
       end
       object FileListBox1: TFileListBox
         Left = 1
@@ -102,6 +104,8 @@ object Form1: TForm1
         Mask = '*.pdf'
         TabOrder = 1
         OnChange = FileListBoxEx1Change
+        ExplicitWidth = 428
+        ExplicitHeight = 198
       end
     end
     object PageControl1: TPageControl
@@ -109,11 +113,10 @@ object Form1: TForm1
       Top = 1
       Width = 432
       Height = 399
-      ActivePage = TabSheet2
+      ActivePage = TabSheet4
       Align = alClient
       TabOrder = 1
-      ExplicitTop = 7
-      ExplicitHeight = 393
+      OnChange = PageControl1Change
       object TabSheet1: TTabSheet
         Caption = 'Log'
         object Memo1: TMemo
@@ -210,7 +213,8 @@ object Form1: TForm1
           FixedCols = 0
           Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goRowSelect, goFixedRowDefAlign]
           TabOrder = 2
-          ExplicitTop = 160
+          ExplicitWidth = 422
+          ExplicitHeight = 204
         end
         object edtInvoiceNo: TEdit
           Left = 58
@@ -262,6 +266,64 @@ object Form1: TForm1
           Date = 44922.000000000000000000
           Time = 0.977810972224688200
           TabOrder = 8
+        end
+      end
+      object TabSheet3: TTabSheet
+        Caption = 'Customers'
+        ImageIndex = 2
+        object ListView1: TListView
+          Left = 0
+          Top = 0
+          Width = 424
+          Height = 371
+          Align = alClient
+          Columns = <
+            item
+              Caption = 'Id'
+            end
+            item
+              Caption = 'DisplayName'
+              Width = 200
+            end>
+          RowSelect = True
+          TabOrder = 0
+          ViewStyle = vsReport
+          ExplicitLeft = 1
+          ExplicitTop = -1
+        end
+      end
+      object TabSheet4: TTabSheet
+        Caption = 'Invoices'
+        ImageIndex = 3
+        object lvInvoices: TListView
+          Left = 0
+          Top = 0
+          Width = 424
+          Height = 371
+          Align = alClient
+          Columns = <
+            item
+              Caption = 'Id'
+            end
+            item
+              Caption = 'CustomerRefName'
+              Width = 100
+            end
+            item
+              Caption = 'CustomerRefValue'
+              Width = 100
+            end
+            item
+              Caption = 'Total'
+            end
+            item
+              Caption = 'Date'
+            end>
+          RowSelect = True
+          TabOrder = 0
+          ViewStyle = vsReport
+          ExplicitLeft = 1
+          ExplicitTop = -1
         end
       end
     end
@@ -339,11 +401,6 @@ object Form1: TForm1
         Row = 0
       end
       item
-        Column = 4
-        Control = btnListCustomer
-        Row = 0
-      end
-      item
         Column = 5
         Control = btnListInvoice
         Row = 0
@@ -351,16 +408,6 @@ object Form1: TForm1
       item
         Column = 6
         Control = btnUploadInvoice
-        Row = 0
-      end
-      item
-        Column = 7
-        Control = btnLogin
-        Row = 0
-      end
-      item
-        Column = 8
-        Control = Button2
         Row = 0
       end
       item
@@ -385,7 +432,8 @@ object Form1: TForm1
         SizeStyle = ssAuto
       end>
     TabOrder = 2
-    ExplicitWidth = 862
+    ExplicitLeft = 1
+    ExplicitTop = -4
     DesignSize = (
       866
       42)
@@ -408,6 +456,7 @@ object Form1: TForm1
       Caption = 'Attach File'
       TabOrder = 1
       OnClick = btnAttachFileClick
+      ExplicitLeft = 134
     end
     object btnAuthWithRefreshToken: TButton
       Left = 214
@@ -418,6 +467,7 @@ object Form1: TForm1
       Caption = 'Auth with Refresh Token'
       TabOrder = 2
       OnClick = btnAuthWithRefreshTokenClick
+      ExplicitLeft = 213
     end
     object btnCreateInvoiceFromObject: TButton
       Left = 288
@@ -428,16 +478,7 @@ object Form1: TForm1
       Caption = 'Create Invoice From Object'
       TabOrder = 3
       OnClick = btnCreateInvoiceFromObjectClick
-    end
-    object btnListCustomer: TButton
-      Left = 373
-      Top = 1
-      Width = 80
-      Height = 25
-      Anchors = []
-      Caption = 'List Customer'
-      TabOrder = 4
-      OnClick = btnListCustomerClick
+      ExplicitLeft = 287
     end
     object btnListInvoice: TButton
       Left = 469
@@ -446,8 +487,9 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'List Invoice'
-      TabOrder = 5
+      TabOrder = 4
       OnClick = btnListInvoiceClick
+      ExplicitLeft = 467
     end
     object btnUploadInvoice: TButton
       Left = 565
@@ -456,27 +498,9 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Upload Invoice'
-      TabOrder = 6
+      TabOrder = 5
       OnClick = btnUploadInvoiceClick
-    end
-    object btnLogin: TButton
-      Left = 686
-      Top = 1
-      Width = 75
-      Height = 25
-      Anchors = []
-      Caption = 'Login'
-      TabOrder = 7
-      OnClick = LoginClick
-    end
-    object Button2: TButton
-      Left = 786
-      Top = 1
-      Width = 75
-      Height = 25
-      Anchors = []
-      Caption = 'JSON Invoice'
-      TabOrder = 8
+      ExplicitLeft = 562
     end
     object Button3: TButton
       Left = 21
@@ -485,9 +509,104 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Create Invoice'
-      TabOrder = 9
+      TabOrder = 6
       Visible = False
       OnClick = Button3Click
     end
+  end
+  object BindSourceDB1: TBindSourceDB
+    DataSet = dmIntuitAPI.tblCustomers
+    ScopeMappings = <>
+    Left = 424
+    Top = 240
+  end
+  object BindingsList1: TBindingsList
+    Methods = <>
+    OutputConverters = <>
+    Left = 68
+    Top = 85
+    object LinkListControlToField1: TLinkListControlToField
+      Category = 'Quick Bindings'
+      DataSource = BindSourceDB1
+      FieldName = 'Id'
+      Control = ListView1
+      FillExpressions = <
+        item
+          SourceMemberName = 'DisplayName'
+          ControlMemberName = 'SubItems[0]'
+        end>
+      FillHeaderExpressions = <>
+      FillBreakGroups = <>
+    end
+    object LinkListControlToField2: TLinkListControlToField
+      Category = 'Quick Bindings'
+      DataSource = BindSourceDB2
+      FieldName = 'Id'
+      Control = lvInvoices
+      FillExpressions = <
+        item
+          SourceMemberName = 'CustomerRefName'
+          ControlMemberName = 'SubItems[0]'
+        end
+        item
+          SourceMemberName = 'CustomerRefValue'
+          ControlMemberName = 'SubItems[1]'
+        end
+        item
+          SourceMemberName = 'TotalAmount'
+          ControlMemberName = 'SubItems[2]'
+        end
+        item
+          SourceMemberName = 'TxnDate'
+          ControlMemberName = 'SubItems[3]'
+        end>
+      FillHeaderExpressions = <>
+      FillBreakGroups = <>
+    end
+  end
+  object MainMenu: TMainMenu
+    Left = 597
+    Top = 235
+    object File1: TMenuItem
+      Caption = '&File'
+      object Login1: TMenuItem
+        Caption = 'Login...'
+        OnClick = LoginClick
+      end
+      object New1: TMenuItem
+        Caption = '&New'
+      end
+      object Open1: TMenuItem
+        Caption = '&Open...'
+      end
+      object Save1: TMenuItem
+        Caption = '&Save'
+      end
+      object SaveAs1: TMenuItem
+        Caption = 'Save &As...'
+      end
+      object N2: TMenuItem
+        Caption = '-'
+      end
+      object Print1: TMenuItem
+        Caption = '&Print...'
+      end
+      object PrintSetup1: TMenuItem
+        Caption = 'P&rint Setup...'
+      end
+      object N1: TMenuItem
+        Caption = '-'
+      end
+      object Exit1: TMenuItem
+        Caption = 'E&xit'
+        OnClick = Exit1Click
+      end
+    end
+  end
+  object BindSourceDB2: TBindSourceDB
+    DataSet = dmIntuitAPI.tblInvoices
+    ScopeMappings = <>
+    Left = 424
+    Top = 248
   end
 end

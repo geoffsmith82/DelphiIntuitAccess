@@ -11,13 +11,11 @@ uses
   , System.Classes
   , System.IniFiles
   , System.Net.URLClient
-  , Vcl.Graphics
   , Vcl.Controls
   , Vcl.Forms
   , Vcl.Dialogs
   , Vcl.OleCtrls
   , Vcl.Edge
-  , SHDocVw
   , WebView2
   ;
 

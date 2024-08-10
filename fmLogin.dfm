@@ -2,30 +2,23 @@ object frmLogin: TfrmLogin
   Left = 0
   Top = 0
   Caption = 'Login'
-  ClientHeight = 299
-  ClientWidth = 635
+  ClientHeight = 298
+  ClientWidth = 631
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
-  OnCreate = FormCreate
-  OnDestroy = FormDestroy
-  PixelsPerInch = 96
   TextHeight = 13
   object EdgeBrowser1: TEdgeBrowser
     Left = 0
     Top = 0
-    Width = 635
-    Height = 299
+    Width = 631
+    Height = 298
     Align = alClient
     TabOrder = 0
+    UserDataFolder = '%LOCALAPPDATA%\bds.exe.WebView2'
     OnNavigationCompleted = EdgeBrowser1NavigationCompleted
-    ExplicitLeft = 312
-    ExplicitTop = 176
-    ExplicitWidth = 100
-    ExplicitHeight = 41
   end
 end

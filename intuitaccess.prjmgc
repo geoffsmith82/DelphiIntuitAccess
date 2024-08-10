@@ -6,9 +6,9 @@ ClearChildVersionInfo=0
 NormalizeDproj=1
 SplitDproj=0
 EnableMissingPlatforms=0
-RemoveUnusedPlatforms=0
+RemoveUnusedPlatforms=1
 RefreshFormType=0
-RemoveExcludedPackages=0
-RemoveDeployment=0
-RemoveUWP=0
+RemoveExcludedPackages=1
+RemoveDeployment=1
+RemoveUWP=1
 

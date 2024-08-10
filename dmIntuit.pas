@@ -14,6 +14,17 @@ uses
   , System.Net.URLClient
   , Data.Bind.Components
   , Data.Bind.ObjectScope
+  , FireDAC.Stan.Intf
+  , FireDAC.Stan.Option
+  , FireDAC.Stan.Param
+  , FireDAC.Stan.Error
+  , FireDAC.DatS
+  , FireDAC.Phys.Intf
+  , FireDAC.DApt.Intf
+  , Data.DB
+  , FireDAC.Comp.DataSet
+  , FireDAC.Comp.Client
+  , JSON.CustomerList
   , JSON.InvoiceList
   , JSON.AttachableList
   , OAuth2.Intuit
@@ -36,6 +47,19 @@ type
     RESTResponse1: TRESTResponse;
     RESTRequest1: TRESTRequest;
     RESTClient1: TRESTClient;
+    tblCustomers: TFDMemTable;
+    tblCustomersId: TStringField;
+    tblCustomersActive: TBooleanField;
+    tblCustomersDisplayName: TStringField;
+    tblCustomersSyncToken: TStringField;
+    tblCustomersPrimaryEmailAddr: TStringField;
+    tblInvoices: TFDMemTable;
+    tblInvoicesId: TStringField;
+    tblInvoicesSyncToken: TStringField;
+    tblInvoicesTxnDate: TStringField;
+    tblInvoicesCustomerRefName: TStringField;
+    tblInvoicesCustomerRefValue: TStringField;
+    tblInvoicesTotalAmount: TFloatField;
     procedure DataModuleDestroy(Sender: TObject);
     procedure DataModuleCreate(Sender: TObject);
   strict private
@@ -50,6 +74,8 @@ type
   public
     { Public declarations }
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
+    function GetCustomers: TCustomerListClass;
+    procedure ListInvoices;
     procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
     procedure UploadAttachment(inFilename, inInvoiceID: string);
     procedure ChangeRefreshTokenToAccessToken;
@@ -66,7 +92,7 @@ var
 
 implementation
 
-{%CLASSGROUP 'Vcl.Controls.TControl'}
+{%CLASSGROUP 'System.Classes.TPersistent'}
 
 {$R *.dfm}
 
@@ -181,6 +207,71 @@ procedure TdmIntuitAPI.doLog(inText: string);
 begin
   if Assigned(FOnLog) then
     FOnLog(inText);
+end;
+
+procedure TdmIntuitAPI.ListInvoices;
+var
+  invoiceList : TJSONInvoiceListClass;
+  invoice : TInvoiceClass;
+begin
+  RESTRequest1.Method := rmGET;
+  RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Invoice';// Where Id > ' + QuotedStr('166');
+  RESTRequest1.AddParameter('RealmId', RealmId, pkURLSEGMENT);
+  RESTRequest1.ExecuteAsync(procedure ()
+      var
+        i: Integer;
+      begin
+      try
+        invoiceList := TJSONInvoiceListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
+        tblInvoices.Active := True;
+        for i := 0 to Length(invoiceList.QueryResponse.Invoice) - 1 do
+        begin
+          invoice := invoiceList.QueryResponse.Invoice[i];
+          tblInvoices.Append;
+          tblInvoicesId.Value := invoice.Id;
+          tblInvoicesSyncToken.Value := invoice.SyncToken;
+          tblInvoicesTxnDate.Value := invoice.TxnDate;
+          tblInvoicesCustomerRefName.Value := invoice.CustomerRef.name;
+          tblInvoicesCustomerRefValue.Value := invoice.CustomerRef.value;
+          tblInvoicesTotalAmount.Value := invoice.TotalAmt;
+          tblInvoices.Post;
+        end;
+      finally
+        FreeAndNil(invoiceList);
+      end;
+  end);
+end;
+
+function TdmIntuitAPI.GetCustomers: TCustomerListClass;
+var
+  customers : TCustomerListClass;
+begin
+  dmIntuitAPI.RESTRequest1.ResetToDefaults;
+  dmIntuitAPI.RESTRequest1.Method := rmGET;
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
+  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
+  dmIntuitAPI.RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
+  dmIntuitAPI.RESTRequest1.ExecuteAsync(procedure ()
+  var
+    i : Integer;
+  begin
+    customers := TCustomerListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
+    tblCustomers.Active := True;
+    for i := 0 to Length(customers.QueryResponse.Customer) - 1 do
+    begin
+      tblCustomers.Append;
+      tblCustomersId.Value := customers.QueryResponse.Customer[i].Id;
+      tblCustomersSyncToken.Value := customers.QueryResponse.Customer[i].SyncToken;
+      tblCustomersDisplayName.Value := customers.QueryResponse.Customer[i].DisplayName;
+      tblCustomersPrimaryEmailAddr.Value := customers.QueryResponse.Customer[i].PrimaryEmailAddr.Address;
+      tblCustomers.Post;
+    //    Memo1.Lines.Add('Id: ' + customers.QueryResponse.Customer[i].Id);
+    //    Memo1.Lines.Add('DisplayName: ' + customers.QueryResponse.Customer[i].DisplayName);
+    //    Memo1.Lines.Add('Balance: ' + customers.QueryResponse.Customer[i].Balance.ToString)
+    end;
+  end);
+
+
 end;
 
 procedure TdmIntuitAPI.HandleOAuthCodeRedirect(uri: TURI);

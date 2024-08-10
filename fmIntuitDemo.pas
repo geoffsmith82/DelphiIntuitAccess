@@ -22,6 +22,13 @@ uses
   , REST.Types
   , Data.Bind.Components
   , Data.Bind.ObjectScope
+  , Data.Bind.EngExt
+  , Vcl.Bind.DBEngExt
+  , System.Rtti
+  , System.Bindings.Outputs
+  , Vcl.Bind.Editors
+  , Data.Bind.DBScope
+  , Vcl.Menus
   , JSON.InvoiceList
   , JSON.VendorList
   , JSON.ChartOfAccountList
@@ -33,9 +40,7 @@ uses
 
 type
   TForm1 = class(TForm)
-    btnLogin: TButton;
     Button3: TButton;
-    btnListCustomer: TButton;
     btnListInvoice: TButton;
     btnAuthWithRefreshToken: TButton;
     btnCreateInvoiceFromObject: TButton;
@@ -68,21 +73,43 @@ type
     btnAddInvoiceLine: TButton;
     FileListBox1: TFileListBox;
     DirectoryListBox1: TDirectoryListBox;
-    Button2: TButton;
     GridPanel3: TGridPanel;
+    TabSheet3: TTabSheet;
+    ListView1: TListView;
+    BindSourceDB1: TBindSourceDB;
+    BindingsList1: TBindingsList;
+    LinkListControlToField1: TLinkListControlToField;
+    MainMenu: TMainMenu;
+    File1: TMenuItem;
+    New1: TMenuItem;
+    Open1: TMenuItem;
+    Save1: TMenuItem;
+    SaveAs1: TMenuItem;
+    Print1: TMenuItem;
+    PrintSetup1: TMenuItem;
+    Exit1: TMenuItem;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    Login1: TMenuItem;
+    TabSheet4: TTabSheet;
+    lvInvoices: TListView;
+    BindSourceDB2: TBindSourceDB;
+    LinkListControlToField2: TLinkListControlToField;
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
-    procedure btnListCustomerClick(Sender: TObject);
     procedure btnListInvoiceClick(Sender: TObject);
     procedure btnAuthWithRefreshTokenClick(Sender: TObject);
     procedure btnCreateInvoiceFromObjectClick(Sender: TObject);
     procedure btnUploadInvoiceClick(Sender: TObject);
     procedure btnAddInvoiceLineClick(Sender: TObject);
+    procedure Exit1Click(Sender: TObject);
     procedure LoginClick(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
+    procedure PageControl1Change(Sender: TObject);
   private
     FInvoice : TInvoice;
+    procedure ResetGrid(Grid: TStringGrid);
   public
     { Public declarations }
   end;
@@ -126,8 +153,6 @@ var
   ItemRef : TJSONObject;
   CustomerRef : TJSONObject;
 begin
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/invoice';
-  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
   invoiceObj := TJSONObject.Create;
   invoiceLines := TJSONArray.Create;
 
@@ -154,31 +179,12 @@ begin
 
   invoiceObj.AddPair('CustomerRef', CustomerRef);
 
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/invoice';
+  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
   dmIntuitAPI.RESTRequest1.Method := rmPOST;
   dmIntuitAPI.RESTRequest1.Execute;
+
   Memo1.Lines.Add(dmIntuitAPI.RESTRequest1.Response.Content);
-end;
-
-procedure TForm1.btnListCustomerClick(Sender: TObject);
-var
-  customers : TCustomerListClass;
-  i : Integer;
-begin
-  dmIntuitAPI.RESTRequest1.ResetToDefaults;
-  dmIntuitAPI.RESTRequest1.Method := rmGET;
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
-  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
-  dmIntuitAPI.RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
-  dmIntuitAPI.RESTRequest1.Execute;
-
-  customers := TCustomerListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
-
-  for i := 0 to Length(customers.QueryResponse.Customer) - 1 do
-  begin
-    Memo1.Lines.Add('Id: ' + customers.QueryResponse.Customer[i].Id);
-    Memo1.Lines.Add('DisplayName: ' + customers.QueryResponse.Customer[i].DisplayName);
-    Memo1.Lines.Add('Balance: ' + customers.QueryResponse.Customer[i].Balance.ToString)
-  end;
 end;
 
 procedure TForm1.btnListInvoiceClick(Sender: TObject);
@@ -193,7 +199,7 @@ DisplayName: TEST
 Balance: 0
 }
   dmIntuitAPI.RESTRequest1.Method := rmGET;
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Invoice Where Id > ' + QuotedStr('166');
+  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Invoice';// Where Id > ' + QuotedStr('166');
   dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
   dmIntuitAPI.RESTRequest1.Execute;
   try
@@ -351,12 +357,17 @@ begin
   StringGrid1.RowCount := StringGrid1.RowCount + 1;
 end;
 
+procedure TForm1.Exit1Click(Sender: TObject);
+begin
+  Application.Terminate;
+end;
+
 procedure TForm1.LoginClick(Sender: TObject);
 begin
   dmIntuitAPI.ShowLoginForm;
 end;
 
-procedure ResetGrid(Grid: TStringGrid);
+procedure TForm1.ResetGrid(Grid: TStringGrid);
 begin
   Grid.RowCount := 1;  // Set the RowCount to 1
   Grid.ColCount := 5;//
@@ -394,19 +405,29 @@ begin
   edtClientRef.Text := FInvoice.ClientRef;
   edtProject.Text := FInvoice.ClientRef.Substring(0,3);
 
-
-//  for i := 0 to FInvoice.FPages.Count - 1 do
+  StringGrid1.RowCount := FInvoice.LineItems.Count + 1;
+  for i := 0 to FInvoice.LineItems.Count - 1 do
   begin
-    for i := 0 to FInvoice.LineItems.Count - 1 do
-    begin
-      StringGrid1.Cells[0, i + 1] := (i + 1).ToString;//FInvoice.LineItems.LineNo.ToString;
-      StringGrid1.Cells[1, i + 1] := FInvoice.LineItems[i].Description;
-      StringGrid1.Cells[2, i + 1] := FInvoice.LineItems[i].Quantity.ToString;
-      StringGrid1.Cells[3, i + 1] := FloatToStr(FInvoice.LineItems[i].Rate);
-      StringGrid1.Cells[4, i + 1] := CurrToStr(FInvoice.LineItems[i].Amount);
-    end;
-    StringGrid1.RowCount := FInvoice.LineItems.Count + 1;
+    StringGrid1.Cells[0, i + 1] := (i + 1).ToString;//FInvoice.LineItems.LineNo.ToString;
+    StringGrid1.Cells[1, i + 1] := FInvoice.LineItems[i].Description;
+    StringGrid1.Cells[2, i + 1] := FInvoice.LineItems[i].Quantity.ToString;
+    StringGrid1.Cells[3, i + 1] := FloatToStr(FInvoice.LineItems[i].Rate);
+    StringGrid1.Cells[4, i + 1] := CurrToStr(FInvoice.LineItems[i].Amount);
   end;
+end;
+
+procedure TForm1.PageControl1Change(Sender: TObject);
+begin
+  if PageControl1.ActivePage.Caption = 'Customers' then
+  begin
+    //ShowMessage('Customers');
+    dmIntuitAPI.GetCustomers;
+  end
+  else if PageControl1.ActivePage.Caption = 'Invoices' then
+  begin
+    //ShowMessage('Invoices');
+    dmIntuitAPI.ListInvoices;
+  end
 end;
 
 end.
