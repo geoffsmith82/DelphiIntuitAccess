@@ -32,21 +32,24 @@ object dmIntuitAPI: TdmIntuitAPI
     UpdateOptions.AutoCommitUpdates = True
     Left = 448
     Top = 80
-    object tblCustomersId: TStringField
+    object tblCustomersId: TWideStringField
       FieldName = 'Id'
+      Size = 0
+    end
+    object tblCustomersDisplayName: TWideStringField
+      FieldName = 'DisplayName'
+      Size = 0
     end
     object tblCustomersActive: TBooleanField
       FieldName = 'Active'
     end
-    object tblCustomersDisplayName: TStringField
-      FieldName = 'DisplayName'
-      Size = 40
-    end
-    object tblCustomersSyncToken: TStringField
+    object tblCustomersSyncToken: TWideStringField
       FieldName = 'SyncToken'
+      Size = 0
     end
-    object tblCustomersPrimaryEmailAddr: TStringField
+    object tblCustomersPrimaryEmailAddr: TWideStringField
       FieldName = 'PrimaryEmailAddr'
+      Size = 0
     end
   end
   object tblInvoices: TFDMemTable
@@ -59,20 +62,25 @@ object dmIntuitAPI: TdmIntuitAPI
     UpdateOptions.AutoCommitUpdates = True
     Left = 440
     Top = 240
-    object tblInvoicesId: TStringField
+    object tblInvoicesId: TWideStringField
       FieldName = 'Id'
+      Size = 0
     end
-    object tblInvoicesSyncToken: TStringField
+    object tblInvoicesSyncToken: TWideStringField
       FieldName = 'SyncToken'
+      Size = 0
     end
-    object tblInvoicesTxnDate: TStringField
+    object tblInvoicesTxnDate: TWideStringField
       FieldName = 'TxnDate'
+      Size = 0
     end
-    object tblInvoicesCustomerRefName: TStringField
+    object tblInvoicesCustomerRefName: TWideStringField
       FieldName = 'CustomerRefName'
+      Size = 0
     end
-    object tblInvoicesCustomerRefValue: TStringField
+    object tblInvoicesCustomerRefValue: TWideStringField
       FieldName = 'CustomerRefValue'
+      Size = 0
     end
     object tblInvoicesTotalAmount: TFloatField
       FieldName = 'TotalAmount'

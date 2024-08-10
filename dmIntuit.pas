@@ -48,18 +48,18 @@ type
     RESTRequest1: TRESTRequest;
     RESTClient1: TRESTClient;
     tblCustomers: TFDMemTable;
-    tblCustomersId: TStringField;
     tblCustomersActive: TBooleanField;
-    tblCustomersDisplayName: TStringField;
-    tblCustomersSyncToken: TStringField;
-    tblCustomersPrimaryEmailAddr: TStringField;
     tblInvoices: TFDMemTable;
-    tblInvoicesId: TStringField;
-    tblInvoicesSyncToken: TStringField;
-    tblInvoicesTxnDate: TStringField;
-    tblInvoicesCustomerRefName: TStringField;
-    tblInvoicesCustomerRefValue: TStringField;
     tblInvoicesTotalAmount: TFloatField;
+    tblCustomersId: TWideStringField;
+    tblCustomersDisplayName: TWideStringField;
+    tblCustomersSyncToken: TWideStringField;
+    tblCustomersPrimaryEmailAddr: TWideStringField;
+    tblInvoicesId: TWideStringField;
+    tblInvoicesSyncToken: TWideStringField;
+    tblInvoicesTxnDate: TWideStringField;
+    tblInvoicesCustomerRefName: TWideStringField;
+    tblInvoicesCustomerRefValue: TWideStringField;
     procedure DataModuleDestroy(Sender: TObject);
     procedure DataModuleCreate(Sender: TObject);
   strict private
