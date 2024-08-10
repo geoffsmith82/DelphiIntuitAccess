@@ -68,9 +68,12 @@ type
     FfrmLogin: TfrmLogin;
     FTokenManager: TTokenManager;
     OAuth2Authenticator1: TIntuitOAuth2;
-    procedure doLog(inText: string);
+    procedure DoLog(inText: string);
   private
     { Private declarations }
+    FClientID : string;
+    FClientSecret : string;
+    function GetEnvironment: string;
   public
     { Public declarations }
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
@@ -81,10 +84,13 @@ type
     procedure ChangeRefreshTokenToAccessToken;
     procedure ShowLoginForm;
     procedure HandleOAuthCodeRedirect(uri: TURI);
-
+    procedure SetEnvironment(inEnvironment: string);
+    function GetBaseURL: string;
+    function GetEnvironmentData(inName: string): string;
   published
     property RealmId : string read FrealmId write FrealmId;
     property TokenManager: TTokenManager read FTokenManager;
+    property Environment: string read GetEnvironment;
   end;
 
 var
@@ -109,29 +115,31 @@ end;
 
 procedure TdmIntuitAPI.DataModuleCreate(Sender: TObject);
 begin
+  FfrmLogin := TfrmLogin.Create(nil);
+  FTokenManager := TTokenManager.Create(ChangeFileExt(ParamStr(0), '.ini'));
   OAuth2Authenticator1 := TIntuitOAuth2.Create(nil);
+
   OAuth2Authenticator1.AuthorizationEndpoint := 'https://appcenter.intuit.com/connect/oauth2';
   OAuth2Authenticator1.AccessTokenEndpoint := 'https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer';
 
   OAuth2Authenticator1.RedirectionEndpoint := SECRET_REDIRECT_URL; //'https://developer.intuit.com/v2/OAuth2Playground/RedirectUrl';
 
   OAuth2Authenticator1.Scope := 'com.intuit.quickbooks.accounting openid';
-  OAuth2Authenticator1.ClientID := SECRET_INTUIT_CLIENTID;
-  OAuth2Authenticator1.ClientSecret := SECRET_INTUIT_CLIENTSECRET;
+  SetEnvironment(environment);
 
   OAuth2Authenticator1.ResponseType := TOAuth2ResponseType.rtCODE;
-  FTokenManager := TTokenManager.Create(ChangeFileExt(ParamStr(0), '.ini'));
-  OAuth2Authenticator1.RefreshToken := FTokenManager.RetrieveDecryptedToken;
-  RealmId := TokenManager.RetrieveExtraData('RealmId');
+  OAuth2Authenticator1.RefreshToken := FTokenManager.RetrieveDecryptedToken(Environment, 'refresh_token');
+
+  RealmId := GetEnvironmentData('RealmId');
+
   RESTClient1.Authenticator := OAuth2Authenticator1;
-  FfrmLogin := TfrmLogin.Create(nil);
-  RESTClient1.BaseURL := 'https://sandbox-quickbooks.api.intuit.com';
+  RESTClient1.BaseURL := GetBaseURL;
 end;
 
 procedure TdmIntuitAPI.ChangeRefreshTokenToAccessToken;
 begin
-  OAuth2Authenticator1.RefreshToken := TokenManager.RetrieveDecryptedToken;
-  RealmId := TokenManager.RetrieveExtraData('RealmId');
+  OAuth2Authenticator1.RefreshToken := TokenManager.UnprotectSecret(GetEnvironmentData('refresh_token'));
+  RealmId := GetEnvironmentData('RealmId');
   OAuth2Authenticator1.ChangeRefreshTokenToAccesToken;
 end;
 
@@ -167,7 +175,7 @@ begin
   invoiceText := invoiceJSON.ToJSON;
   doLog(invoiceText);
   RESTRequest1.Method := rmPost;
-  FrealmID := FTokenManager.RetrieveExtraData('RealmId');
+  FrealmID := GetEnvironmentData('RealmId');
   RESTRequest1.Resource := '/v3/company/' + FrealmId + '/invoice?minorversion=38';
   RESTRequest1.AddBody(invoiceText, ctAPPLICATION_JSON);
   RESTRequest1.Execute;
@@ -188,6 +196,30 @@ begin
   end;
 end;
 
+procedure TdmIntuitAPI.SetEnvironment(inEnvironment: string);
+begin
+  TokenManager.StoreExtraSectionData('Global', 'Environment', inEnvironment);
+
+  if inEnvironment.ToLower = 'sandbox' then
+  begin
+    FClientID := SECRET_SANDBOX_INTUIT_CLIENTID;
+    FClientSecret := SECRET_SANDBOX_INTUIT_CLIENTSECRET;
+  end
+  else if inEnvironment.ToLower = 'production' then
+  begin
+    FClientID := SECRET_PRODUCTION_INTUIT_CLIENTID;
+    FClientSecret := SECRET_PRODUCTION_INTUIT_CLIENTSECRET;
+  end
+  else
+  begin
+    raise Exception.Create('Unknown Environment Selected');
+  end;
+  OAuth2Authenticator1.ClientID := FClientID;
+  OAuth2Authenticator1.ClientSecret := FClientSecret;
+  OAuth2Authenticator1.RefreshToken := TokenManager.RetrieveDecryptedToken(Environment, 'refresh_token');
+  RESTClient1.BaseURL := GetBaseURL;
+end;
+
 procedure TdmIntuitAPI.SetupInvoice(invoice: TInvoiceClass; TxnDate:TDate; invoiceID:String);
 begin
   invoice.CurrencyRef.name  := 'Australian Dollar';
@@ -204,7 +236,7 @@ begin
   invoice.TrackingNum := invoiceID;
 end;
 
-procedure TdmIntuitAPI.doLog(inText: string);
+procedure TdmIntuitAPI.DoLog(inText: string);
 begin
   if Assigned(FOnLog) then
     FOnLog(inText);
@@ -243,20 +275,28 @@ begin
   end);
 end;
 
+function TdmIntuitAPI.GetBaseURL: string;
+begin
+  if Environment = 'production' then
+    Result := 'https://quickbooks.api.intuit.com'
+  else
+    Result := 'https://sandbox-quickbooks.api.intuit.com';
+end;
+
 function TdmIntuitAPI.GetCustomers: TCustomerListClass;
 var
   customers : TCustomerListClass;
 begin
-  dmIntuitAPI.RESTRequest1.ResetToDefaults;
-  dmIntuitAPI.RESTRequest1.Method := rmGET;
-  dmIntuitAPI.RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
-  dmIntuitAPI.RESTRequest1.AddParameter('RealmId', dmIntuitAPI.RealmId, pkURLSEGMENT);
-  dmIntuitAPI.RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
-  dmIntuitAPI.RESTRequest1.ExecuteAsync(procedure ()
+  RESTRequest1.ResetToDefaults;
+  RESTRequest1.Method := rmGET;
+  RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Customer Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
+  RESTRequest1.AddParameter('RealmId', RealmId, pkURLSEGMENT);
+  RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
+  RESTRequest1.ExecuteAsync(procedure ()
   var
     i : Integer;
   begin
-    customers := TCustomerListClass.FromJsonString(dmIntuitAPI.RESTRequest1.Response.Content);
+    customers := TCustomerListClass.FromJsonString(RESTRequest1.Response.Content);
     tblCustomers.Active := True;
     for i := 0 to Length(customers.QueryResponse.Customer) - 1 do
     begin
@@ -273,6 +313,18 @@ begin
   end);
 
 
+end;
+
+function TdmIntuitAPI.GetEnvironment: string;
+begin
+  Result := TokenManager.RetrieveExtraSectionData('Global', 'Environment');
+  if Result.IsEmpty then
+    Result := 'sandbox';
+end;
+
+function TdmIntuitAPI.GetEnvironmentData(inName: string): string;
+begin
+  Result := TokenManager.RetrieveExtraSectionData(Environment, inName);
 end;
 
 procedure TdmIntuitAPI.HandleOAuthCodeRedirect(uri: TURI);
@@ -293,8 +345,8 @@ begin
 //  Form1.Memo1.Lines.Add('Access Token');
 
 //  Form1.Memo1.Lines.Add(OAuth2Authenticator1.AccessToken);
-  TokenManager.StoreEncryptedToken(OAuth2Authenticator1.RefreshToken);
-  TokenManager.StoreExtraData('RealmId', RealmId);
+  TokenManager.StoreEncryptedToken(environment, 'refresh_token', OAuth2Authenticator1.RefreshToken);
+  TokenManager.StoreExtraSectionData(environment, 'RealmId', RealmId);
 end;
 
 procedure TdmIntuitAPI.ShowLoginForm;
@@ -302,8 +354,8 @@ var
   uri : TURI;
 begin
   uri := TURI.Create('https://appcenter.intuit.com/connect/oauth2');
-  uri.AddParameter('client_id', SECRET_INTUIT_CLIENTID);
-  uri.AddParameter('client_secret', SECRET_INTUIT_CLIENTSECRET);
+  uri.AddParameter('client_id', FClientID);
+  uri.AddParameter('client_secret', FClientSecret);
   uri.AddParameter('scope', 'com.intuit.quickbooks.accounting');
   uri.AddParameter('redirect_uri', SECRET_REDIRECT_URL);
   uri.AddParameter('state', '2342342323');

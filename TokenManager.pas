@@ -12,33 +12,27 @@ type
   TTokenManager = class
   private type
     TNCryptDescriptorHandle = Pointer;
-
     TNCryptBuffer = record
       cbBuffer: DWORD;
       BufferType: DWORD;
       pvBuffer: PVOID;
     end;
     PNCryptBuffer = ^TNCryptBuffer;
-
     TNCryptBufferDesc = record
       ulVersion: DWORD;
       cBuffers: DWORD;
       pBuffers: PNCryptBuffer;
     end;
     PNCryptBufferDesc = ^TNCryptBufferDesc;
-
     PPBYTE = ^PBYTE;
-
   private
     hNCrypt: HMODULE;
     FIniFile: TIniFile;
-
     NCryptCreateProtectionDescriptor: function(
       pszDescriptorString: LPCWSTR;
       dwFlags: DWORD;
       phDescriptor: PPointer
     ): HRESULT; stdcall;
-
     NCryptProtectSecret: function(
       hDescriptor: TNCryptDescriptorHandle;
       dwFlags: DWORD;
@@ -49,7 +43,6 @@ type
       ppbProtectedBlob: PPBYTE;
       pcbProtectedBlob: PDWORD
     ): HRESULT; stdcall;
-
     NCryptUnprotectSecret: function(
       hDescriptor: TNCryptDescriptorHandle;
       dwFlags: DWORD;
@@ -60,23 +53,21 @@ type
       ppbData: PPBYTE;
       pcbData: PDWORD
     ): HRESULT; stdcall;
-
     NCryptCloseProtectionDescriptor: function(
       hDescriptor: TNCryptDescriptorHandle
     ): HRESULT; stdcall;
 
-
   public
     constructor Create(const IniFileName: string);
     destructor Destroy; override;
-
     function ProtectSecret(const Secret: string): string;
     function UnprotectSecret(const ProtectedBlob: string): string;
-    function RetrieveDecryptedToken: string;
-    procedure StoreEncryptedToken(const Token: string);
-
-    procedure StoreExtraData(const Name, Value: string);
-    function RetrieveExtraData(const name: string): string;
+    function RetrieveDecryptedToken(inSection, inName: string): string;
+    procedure StoreEncryptedToken(const inSection: string; const inName: string; const Token: string);
+//    procedure StoreExtraData(const Name, Value: string);
+    procedure StoreExtraSectionData(section: string; const Name, Value: string);
+//    function RetrieveExtraData(const name: string): string;
+    function RetrieveExtraSectionData(const section: string; const name: string): string;
   end;
 
 implementation
@@ -93,9 +84,7 @@ end;
 constructor TTokenManager.Create(const IniFileName: string);
 begin
   inherited Create;
-
   FIniFile := TIniFile.Create(IniFileName);
-
   hNCrypt := LoadLibrary('NCrypt.dll');
   if hNCrypt <> 0 then
   begin
@@ -103,7 +92,6 @@ begin
     @NCryptProtectSecret := GetProcAddress(hNCrypt, 'NCryptProtectSecret');
     @NCryptUnprotectSecret := GetProcAddress(hNCrypt, 'NCryptUnprotectSecret');
     @NCryptCloseProtectionDescriptor := GetProcAddress(hNCrypt, 'NCryptCloseProtectionDescriptor');
-
     if not Assigned(NCryptCreateProtectionDescriptor) or
        not Assigned(NCryptProtectSecret) or
        not Assigned(NCryptUnprotectSecret) or
@@ -117,10 +105,8 @@ end;
 destructor TTokenManager.Destroy;
 begin
   FIniFile.Free;
-
   if hNCrypt <> 0 then
     FreeLibrary(hNCrypt);
-
   inherited Destroy;
 end;
 
@@ -134,12 +120,10 @@ var
 begin
   if not Assigned(NCryptCreateProtectionDescriptor) or not Assigned(NCryptProtectSecret) then
     raise Exception.Create('NCrypt functions not assigned');
-
   // Create the protection descriptor
   ResultCode := NCryptCreateProtectionDescriptor('LOCAL=user', 0, @hDescriptor);
   if ResultCode <> S_OK then
     RaiseLastOSError(ResultCode);
-
   try
     ResultCode := NCryptProtectSecret(
       hDescriptor,
@@ -151,7 +135,6 @@ begin
       @ProtectedBlob,
       @ProtectedBlobSize
     );
-
     if ResultCode = S_OK then
     begin
       SetLength(EncryptedBytes, ProtectedBlobSize);
@@ -177,15 +160,12 @@ var
 begin
   if not Assigned(NCryptCreateProtectionDescriptor) or not Assigned(NCryptUnprotectSecret) then
     raise Exception.Create('NCrypt functions not assigned');
-
   // Create the protection descriptor
   ResultCode := NCryptCreateProtectionDescriptor('LOCAL=user', 0, @hDescriptor);
   if ResultCode <> S_OK then
     RaiseLastOSError(ResultCode);
-
   try
     EncryptedBytes := TNetEncoding.Base64String.DecodeStringToBytes(ProtectedBlob);
-
     ResultCode := NCryptUnprotectSecret(
       hDescriptor,
       0,
@@ -196,7 +176,6 @@ begin
       @Data,
       @DataSize
     );
-
     if ResultCode = S_OK then
     begin
       SetLength(Result, DataSize div SizeOf(Char)); // Adjust length for character size
@@ -212,36 +191,46 @@ begin
   end;
 end;
 
-function TTokenManager.RetrieveDecryptedToken: string;
+function TTokenManager.RetrieveDecryptedToken(inSection: string; inName: string): string;
 var
   EncryptedToken: string;
 begin
-  EncryptedToken := FIniFile.ReadString('Token', 'Encrypted', '');
+  EncryptedToken := FIniFile.ReadString(inSection, inName, '');
   if EncryptedToken = '' then
   begin
     Result := '';
     Exit;
   end;
-
   Result := UnprotectSecret(EncryptedToken);
 end;
 
-function TTokenManager.RetrieveExtraData(const name: string): string;
+//function TTokenManager.RetrieveExtraData(const name: string): string;
+//begin
+//  Result := FIniFile.ReadString('Token', name, '');
+//end;
+
+function TTokenManager.RetrieveExtraSectionData(const section, name: string): string;
 begin
-  Result := FIniFile.ReadString('Token', name, '');
+  Result := FIniFile.ReadString(section, name, '');
 end;
 
-procedure TTokenManager.StoreEncryptedToken(const Token: string);
+procedure TTokenManager.StoreEncryptedToken(const inSection: string; const inName: string; const Token: string);
 var
   EncryptedToken: string;
 begin
   EncryptedToken := ProtectSecret(Token);
-  FIniFile.WriteString('Token', 'Encrypted', EncryptedToken);
+  FIniFile.WriteString(inSection, inName, EncryptedToken);
 end;
 
-procedure TTokenManager.StoreExtraData(const Name: string; const Value: string);
+//
+//procedure TTokenManager.StoreExtraData(const Name: string; const Value: string);
+//begin
+//  FIniFile.WriteString('Token', Name, Value);
+//end;
+
+procedure TTokenManager.StoreExtraSectionData(section: string; const Name, Value: string);
 begin
-  FIniFile.WriteString('Token', Name, Value);
+  FIniFile.WriteString(section, Name, Value);
 end;
 
 end.

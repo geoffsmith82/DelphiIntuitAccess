@@ -94,6 +94,9 @@ type
     lvInvoices: TListView;
     BindSourceDB2: TBindSourceDB;
     LinkListControlToField2: TLinkListControlToField;
+    Environment1: TMenuItem;
+    Sandbox1: TMenuItem;
+    Production1: TMenuItem;
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -105,11 +108,14 @@ type
     procedure LoginClick(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
     procedure PageControl1Change(Sender: TObject);
+    procedure Production1Click(Sender: TObject);
+    procedure Sandbox1Click(Sender: TObject);
   private
     FInvoice : TInvoice;
     procedure ResetGrid(Grid: TStringGrid);
   public
     { Public declarations }
+    procedure SetEnvironment(inEnvironment: string);
   end;
 
 var
@@ -138,8 +144,21 @@ begin
 end;
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  environment : string;
 begin
   DirectoryListBox1.Directory := InitialDirectory;
+  environment := dmIntuitAPI.TokenManager.RetrieveExtraSectionData('Global', 'Enviromentment');
+  if environment.ToLower = 'production' then
+  begin
+    Production1.Checked := True;
+    SetEnvironment(environment);
+  end
+  else
+  begin
+    SandBox1.Checked := True;
+    SetEnvironment('sandbox');
+  end;
 end;
 
 procedure TForm1.Button3Click(Sender: TObject);
@@ -373,6 +392,24 @@ begin
   Grid.ColWidths[1] := 600;
 end;
 
+procedure TForm1.SetEnvironment(inEnvironment: string);
+begin
+  dmIntuitAPI.SetEnvironment(inEnvironment);
+  if inEnvironment.ToLower = 'sandbox' then
+  begin
+    Caption := 'Intuit Login Demo - Sandbox Environment';
+
+  end
+  else if inEnvironment.ToLower = 'production' then
+  begin
+    Caption := 'Intuit Login Demo - Production Environment';
+  end
+  else
+  begin
+    raise Exception.Create('Unknown Environment Selected');
+  end;
+end;
+
 procedure TForm1.FileListBoxEx1Change(Sender: TObject);
 var
   i : Integer;
@@ -421,6 +458,18 @@ begin
     //ShowMessage('Invoices');
     dmIntuitAPI.ListInvoices;
   end
+end;
+
+procedure TForm1.Production1Click(Sender: TObject);
+begin
+  dmIntuitAPI.TokenManager.StoreExtraSectionData('Global', 'Environment', 'production');
+  SetEnvironment('production');
+end;
+
+procedure TForm1.Sandbox1Click(Sender: TObject);
+begin
+  dmIntuitAPI.TokenManager.StoreExtraSectionData('Global', 'Environment', 'sandbox');
+  SetEnvironment('sandbox');
 end;
 
 end.

@@ -117,6 +117,9 @@ object Form1: TForm1
       Align = alClient
       TabOrder = 1
       OnChange = PageControl1Change
+      ExplicitLeft = 431
+      ExplicitWidth = 430
+      ExplicitHeight = 398
       object TabSheet1: TTabSheet
         Caption = 'Log'
         object Memo1: TMemo
@@ -213,8 +216,6 @@ object Form1: TForm1
           FixedCols = 0
           Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRangeSelect, goColSizing, goEditing, goRowSelect, goFixedRowDefAlign]
           TabOrder = 2
-          ExplicitWidth = 422
-          ExplicitHeight = 204
         end
         object edtInvoiceNo: TEdit
           Left = 58
@@ -288,8 +289,6 @@ object Form1: TForm1
           RowSelect = True
           TabOrder = 0
           ViewStyle = vsReport
-          ExplicitLeft = 1
-          ExplicitTop = -1
         end
       end
       object TabSheet4: TTabSheet
@@ -322,8 +321,8 @@ object Form1: TForm1
           RowSelect = True
           TabOrder = 0
           ViewStyle = vsReport
-          ExplicitLeft = 1
-          ExplicitTop = -1
+          ExplicitWidth = 422
+          ExplicitHeight = 370
         end
       end
     end
@@ -350,7 +349,6 @@ object Form1: TForm1
     Width = 866
     Height = 42
     Align = alTop
-    Caption = 'GridPanel3'
     ColumnCollection = <
       item
         Value = 14.215147155716520000
@@ -427,8 +425,7 @@ object Form1: TForm1
         SizeStyle = ssAuto
       end>
     TabOrder = 2
-    ExplicitLeft = 1
-    ExplicitTop = -4
+    ExplicitWidth = 862
     DesignSize = (
       866
       42)
@@ -584,6 +581,21 @@ object Form1: TForm1
       object Exit1: TMenuItem
         Caption = 'E&xit'
         OnClick = Exit1Click
+      end
+    end
+    object Environment1: TMenuItem
+      Caption = 'Environment'
+      object Sandbox1: TMenuItem
+        AutoCheck = True
+        Caption = 'Sandbox'
+        RadioItem = True
+        OnClick = Sandbox1Click
+      end
+      object Production1: TMenuItem
+        AutoCheck = True
+        Caption = 'Production'
+        RadioItem = True
+        OnClick = Production1Click
       end
     end
   end
