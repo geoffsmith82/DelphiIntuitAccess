@@ -27,8 +27,7 @@ uses
   , JSON.ChartOfAccountList
   , JSON.CustomerList
   , JSON.AttachableList
-  , ArenaInvoice
-  , PDFInvoices
+  , InvoiceParserUnit
   , dmIntuit
   ;
 
@@ -82,9 +81,8 @@ type
     procedure btnAddInvoiceLineClick(Sender: TObject);
     procedure LoginClick(Sender: TObject);
     procedure FileListBoxEx1Change(Sender: TObject);
-    procedure JSONInvoiceClick(Sender: TObject);
   private
-  //  FInvoice : TPDFInvoice;
+    FInvoice : TInvoice;
   public
     { Public declarations }
   end;
@@ -358,50 +356,57 @@ begin
   dmIntuitAPI.ShowLoginForm;
 end;
 
-procedure TForm1.FileListBoxEx1Change(Sender: TObject);
+procedure ResetGrid(Grid: TStringGrid);
 begin
-{  if Assigned(FInvoice) then
+  Grid.RowCount := 1;  // Set the RowCount to 1
+  Grid.ColCount := 5;//
+  Grid.Rows[0].Clear;  // Clear the first row
+  Grid.Cells[0, 0] := 'LineNo';
+  Grid.Cells[1, 0] := 'Description';
+  Grid.Cells[2, 0] := 'Qty';
+  Grid.Cells[3, 0] := 'Rate';
+  Grid.Cells[4, 0] := 'Amount';
+  Grid.ColWidths[1] := 600;
+end;
+
+procedure TForm1.FileListBoxEx1Change(Sender: TObject);
+var
+  i : Integer;
+begin
+  ResetGrid(StringGrid1);
+  if Assigned(FInvoice) then
     FreeAndNil(FInvoice);
   if FileListBox1.FileName = '' then
     Exit;
 
+  if not TFile.Exists(ChangeFileExt(FileListBox1.FileName, '.json')) then
+    Exit;
 
-  FInvoice := TPDFInvoice.Create(FileListBox1.FileName);
-  FInvoice.Memo1 := Memo1;
-  FInvoice.Memo2 := Memo1;
-  FInvoice.StatusBar1 := StatusBar1;
-  FInvoice.DecodeInvoice;
-  InvoiceDateDatePicker.Date := FInvoice.InvoiceDate;
-  edtInvoiceNo.Text := FInvoice.InvoiceNo;
-  InvoiceDateFromDatePicker.Date := FInvoice.InvoiceDateFrom;
-  InvoiceDateToPicker.Date := FInvoice.InvoiceDateTo;
+
+  FInvoice := ParseInvoiceJsonFile(ChangeFileExt(FileListBox1.FileName, '.json'));
+
+  InvoiceDateDatePicker.Date := FInvoice.Date;
+  edtInvoiceNo.Text := FInvoice.InvoiceNumber;
+  InvoiceDateFromDatePicker.Date := FInvoice.PeriodFrom;
+  InvoiceDateToPicker.Date := FInvoice.PeriodTo;
   meTotalHours.Text := FInvoice.TotalHours.ToString;
-  meTotalAmount.Text := FloatToStr(FInvoice.InvoiceAmount);
+  meTotalAmount.Text := FInvoice.Total;
   edtClientRef.Text := FInvoice.ClientRef;
-  edtProject.Text := FInvoice.Project;
+  edtProject.Text := FInvoice.ClientRef.Substring(0,3);
 
-  StringGrid1.Clear;
 
-  l := 1;
-  StringGrid1.Cells[0, 0] := 'LineNo';
-  StringGrid1.Cells[1, 0] := 'Description';
-  StringGrid1.Cells[2, 0] := 'Qty';
-  StringGrid1.Cells[3, 0] := 'Rate';
-  StringGrid1.Cells[4, 0] := 'Amount';
-
-  StringGrid1.ColWidths[1] := 600;
-  for i := 0 to FInvoice.FPages.Count - 1 do
+//  for i := 0 to FInvoice.FPages.Count - 1 do
   begin
-    for j := 0 to FInvoice.FPages[i].FLineItems.Count - 1 do
+    for i := 0 to FInvoice.LineItems.Count - 1 do
     begin
-      StringGrid1.Cells[0, l] := FInvoice.FPages[i].FLineItems[j].LineNo.ToString;
-      StringGrid1.Cells[1, l] := FInvoice.FPages[i].FLineItems[j].Description;
-      StringGrid1.Cells[2, l] := FInvoice.FPages[i].FLineItems[j].Qty.ToString;
-      StringGrid1.Cells[3, l] := FloatToStr(FInvoice.FPages[i].FLineItems[j].Rate);
-      StringGrid1.Cells[4, l] := CurrToStr(FInvoice.FPages[i].FLineItems[j].Amount);
-      Inc(l);
+      StringGrid1.Cells[0, i + 1] := (i + 1).ToString;//FInvoice.LineItems.LineNo.ToString;
+      StringGrid1.Cells[1, i + 1] := FInvoice.LineItems[i].Description;
+      StringGrid1.Cells[2, i + 1] := FInvoice.LineItems[i].Quantity.ToString;
+      StringGrid1.Cells[3, i + 1] := FloatToStr(FInvoice.LineItems[i].Rate);
+      StringGrid1.Cells[4, i + 1] := CurrToStr(FInvoice.LineItems[i].Amount);
     end;
-  end; }
+    StringGrid1.RowCount := FInvoice.LineItems.Count + 1;
+  end;
 end;
 
 end.

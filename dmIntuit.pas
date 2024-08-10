@@ -7,6 +7,7 @@ uses
   , System.Classes
   , System.JSON
   , System.IOUtils
+  , Winapi.Windows
   , REST.Types
   , REST.Client
   , REST.Authenticator.OAuth
@@ -23,6 +24,14 @@ uses
 type
   TOnLogStatus = procedure(inText: string) of object;
 
+  EIntuitException = class(Exception)
+  private
+    FTid : string;
+  public
+    constructor Create(tid:string; msg: string);
+    property Tid: string read FTid;
+  end;
+
   TdmIntuitAPI = class(TDataModule)
     RESTResponse1: TRESTResponse;
     RESTRequest1: TRESTRequest;
@@ -34,17 +43,19 @@ type
     FOnLog : TOnLogStatus;
     FfrmLogin: TfrmLogin;
     FTokenManager: TTokenManager;
+    OAuth2Authenticator1: TIntuitOAuth2;
     procedure doLog(inText: string);
   private
     { Private declarations }
   public
     { Public declarations }
-    OAuth2Authenticator1: TIntuitOAuth2;
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
     procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
     procedure UploadAttachment(inFilename, inInvoiceID: string);
     procedure ChangeRefreshTokenToAccessToken;
     procedure ShowLoginForm;
+    procedure HandleOAuthCodeRedirect(uri: TURI);
+
   published
     property RealmId : string read FrealmId write FrealmId;
     property TokenManager: TTokenManager read FTokenManager;
@@ -102,9 +113,11 @@ var
   invoiceJSON: TJSONObject;
   invoiceText: string;
   retJSON : TJSONObject;
+  tid : string;
 begin
   RESTRequest1.ResetToDefaults;
   RESTResponse1.ResetToDefaults;
+  try
 
   invoiceJSON := TJSONObject.ParseJSONValue(invoice.ToJsonString) as TJSONObject;
   invoiceJSON.RemovePair('allowIPNPayment');
@@ -139,6 +152,13 @@ begin
   finally
     FreeAndNil(retJSON);
   end;
+  except
+    on e : Exception do
+    begin
+      tid := RESTResponse1.Headers.Values['intuit_tid'];
+      raise EIntuitException.Create(tid, e.Message);
+    end;
+  end;
 end;
 
 procedure TdmIntuitAPI.SetupInvoice(invoice: TInvoiceClass; TxnDate:TDate; invoiceID:String);
@@ -163,6 +183,28 @@ begin
     FOnLog(inText);
 end;
 
+procedure TdmIntuitAPI.HandleOAuthCodeRedirect(uri: TURI);
+var
+  code : string;
+  state : string;
+begin
+  code := uri.ParameterByName['code'];
+  state := uri.ParameterByName['state'];
+  RealmId := uri.ParameterByName['realmId'];
+
+  OAuth2Authenticator1.AuthCode := code;
+//  Form1.Memo1.Lines.Add('url:'+URL);
+
+  OAuth2Authenticator1.ChangeAuthCodeToAccesToken;
+//  Form1.Memo1.Lines.Add('Access Granted');
+//  Form1.Memo1.Lines.Add('RefreshToken=' + OAuth2Authenticator1.RefreshToken);
+//  Form1.Memo1.Lines.Add('Access Token');
+
+//  Form1.Memo1.Lines.Add(OAuth2Authenticator1.AccessToken);
+  TokenManager.StoreEncryptedToken(OAuth2Authenticator1.RefreshToken);
+  TokenManager.StoreExtraData('RealmId', RealmId);
+end;
+
 procedure TdmIntuitAPI.ShowLoginForm;
 var
   uri : TURI;
@@ -184,9 +226,10 @@ var
   attachableRefArr : TArray<TAttachableRefClass>;
   attachableRef : TAttachableRefClass;
   attachJSON : TJSONObject;
-  RequestStream : TStringStream;
   param : TRESTRequestParameter;
+  tid : string;
 begin
+  try
   if not TFile.Exists(inFilename) then
   begin
     raise Exception.Create('File Does not exist - ' + inFilename);
@@ -243,7 +286,23 @@ begin
   DoLog(attachJSON.ToJSON);
   DoLog('--------');
   DoLog(RESTResponse1.Content);
+  except
+    on e : Exception do
+    begin
+      tid := RESTResponse1.Headers.Values['intuit_tid'];
+      raise EIntuitException.Create(tid, e.Message);
+    end;
+  end;
 end;
 
+
+{ EIntuitException }
+
+constructor EIntuitException.Create(tid, msg: string);
+begin
+  inherited Create(msg);
+  FTid := tid;
+  OutputDebugString(PChar('Intuit_Tid:' + tid + ' EXCEPTION: ' + msg));
+end;
 
 end.

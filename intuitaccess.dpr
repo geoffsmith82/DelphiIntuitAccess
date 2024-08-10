@@ -12,7 +12,8 @@ uses
   secrets in 'secrets.pas',
   dmIntuit in 'dmIntuit.pas' {dmIntuitAPI: TDataModule},
   fmLogin in 'fmLogin.pas' {frmLogin},
-  TokenManager in 'TokenManager.pas';
+  TokenManager in 'TokenManager.pas',
+  InvoiceParserUnit in 'InvoiceParserUnit.pas';
 
 {$R *.res}
 

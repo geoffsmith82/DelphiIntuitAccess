@@ -139,6 +139,7 @@
             <FormType>dfm</FormType>
         </DCCReference>
         <DCCReference Include="TokenManager.pas"/>
+        <DCCReference Include="InvoiceParserUnit.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
