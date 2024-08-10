@@ -113,13 +113,10 @@ object Form1: TForm1
       Top = 1
       Width = 432
       Height = 399
-      ActivePage = TabSheet4
+      ActivePage = tsSuppliers
       Align = alClient
       TabOrder = 1
       OnChange = PageControl1Change
-      ExplicitLeft = 431
-      ExplicitWidth = 430
-      ExplicitHeight = 398
       object TabSheet1: TTabSheet
         Caption = 'Log'
         object Memo1: TMemo
@@ -269,10 +266,10 @@ object Form1: TForm1
           TabOrder = 8
         end
       end
-      object TabSheet3: TTabSheet
+      object tsCustomers: TTabSheet
         Caption = 'Customers'
         ImageIndex = 2
-        object ListView1: TListView
+        object lvCustomers: TListView
           Left = 0
           Top = 0
           Width = 424
@@ -291,7 +288,7 @@ object Form1: TForm1
           ViewStyle = vsReport
         end
       end
-      object TabSheet4: TTabSheet
+      object tsInvoices: TTabSheet
         Caption = 'Invoices'
         ImageIndex = 3
         object lvInvoices: TListView
@@ -323,6 +320,31 @@ object Form1: TForm1
           ViewStyle = vsReport
           ExplicitWidth = 422
           ExplicitHeight = 370
+        end
+      end
+      object tsSuppliers: TTabSheet
+        Caption = 'Suppliers'
+        ImageIndex = 4
+        object lvSuppliers: TListView
+          Left = 0
+          Top = 0
+          Width = 424
+          Height = 371
+          Align = alClient
+          Columns = <
+            item
+              Caption = 'Id'
+            end
+            item
+              Caption = 'DisplayName'
+              Width = 200
+            end
+            item
+              Caption = 'Balance'
+            end>
+          RowSelect = True
+          TabOrder = 0
+          ViewStyle = vsReport
         end
       end
     end
@@ -510,7 +532,7 @@ object Form1: TForm1
       Category = 'Quick Bindings'
       DataSource = BindSourceDB1
       FieldName = 'Id'
-      Control = ListView1
+      Control = lvCustomers
       FillExpressions = <
         item
           SourceMemberName = 'DisplayName'
@@ -540,6 +562,23 @@ object Form1: TForm1
         item
           SourceMemberName = 'TxnDate'
           ControlMemberName = 'SubItems[3]'
+        end>
+      FillHeaderExpressions = <>
+      FillBreakGroups = <>
+    end
+    object LinkListControlToField3: TLinkListControlToField
+      Category = 'Quick Bindings'
+      DataSource = BindSourceDB3
+      FieldName = 'Id'
+      Control = lvSuppliers
+      FillExpressions = <
+        item
+          SourceMemberName = 'DisplayName'
+          ControlMemberName = 'SubItems[0]'
+        end
+        item
+          SourceMemberName = 'Balance'
+          ControlMemberName = 'SubItems[1]'
         end>
       FillHeaderExpressions = <>
       FillBreakGroups = <>
@@ -604,5 +643,11 @@ object Form1: TForm1
     ScopeMappings = <>
     Left = 424
     Top = 248
+  end
+  object BindSourceDB3: TBindSourceDB
+    DataSet = dmIntuitAPI.tblVendors
+    ScopeMappings = <>
+    Left = 432
+    Top = 256
   end
 end

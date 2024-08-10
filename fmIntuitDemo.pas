@@ -73,8 +73,8 @@ type
     FileListBox1: TFileListBox;
     DirectoryListBox1: TDirectoryListBox;
     GridPanel3: TGridPanel;
-    TabSheet3: TTabSheet;
-    ListView1: TListView;
+    tsCustomers: TTabSheet;
+    lvCustomers: TListView;
     BindSourceDB1: TBindSourceDB;
     BindingsList1: TBindingsList;
     LinkListControlToField1: TLinkListControlToField;
@@ -90,13 +90,17 @@ type
     N1: TMenuItem;
     N2: TMenuItem;
     Login1: TMenuItem;
-    TabSheet4: TTabSheet;
+    tsInvoices: TTabSheet;
     lvInvoices: TListView;
     BindSourceDB2: TBindSourceDB;
     LinkListControlToField2: TLinkListControlToField;
     Environment1: TMenuItem;
     Sandbox1: TMenuItem;
     Production1: TMenuItem;
+    tsSuppliers: TTabSheet;
+    lvSuppliers: TListView;
+    BindSourceDB3: TBindSourceDB;
+    LinkListControlToField3: TLinkListControlToField;
     procedure btnAttachFileClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
@@ -457,6 +461,11 @@ begin
   begin
     //ShowMessage('Invoices');
     dmIntuitAPI.ListInvoices;
+  end
+  else if PageControl1.ActivePage.Caption = 'Suppliers' then
+  begin
+    //ShowMessage('Suppliers');
+    dmIntuitAPI.ListVendors;
   end
 end;
 

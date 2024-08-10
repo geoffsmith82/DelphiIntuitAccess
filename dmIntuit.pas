@@ -27,6 +27,7 @@ uses
   , JSON.CustomerList
   , JSON.InvoiceList
   , JSON.AttachableList
+  , JSON.VendorList
   , OAuth2.Intuit
   , TokenManager
   , fmLogin
@@ -60,6 +61,12 @@ type
     tblInvoicesTxnDate: TWideStringField;
     tblInvoicesCustomerRefName: TWideStringField;
     tblInvoicesCustomerRefValue: TWideStringField;
+    tblVendors: TFDMemTable;
+    tblVendorsId: TWideStringField;
+    tblVendorsDisplayName: TWideStringField;
+    tblVendorsActive: TBooleanField;
+    tblVendorsSyncToken: TWideStringField;
+    tblVendorsBalance: TFloatField;
     procedure DataModuleDestroy(Sender: TObject);
     procedure DataModuleCreate(Sender: TObject);
   strict private
@@ -79,6 +86,7 @@ type
     function CreateInvoice(invoice: TInvoiceClass): TInvoiceClass;
     function GetCustomers: TCustomerListClass;
     procedure ListInvoices;
+    procedure ListVendors;
     procedure SetupInvoice(invoice: TInvoiceClass; TxnDate: TDate; invoiceID: String);
     procedure UploadAttachment(inFilename, inInvoiceID: string);
     procedure ChangeRefreshTokenToAccessToken;
@@ -313,6 +321,33 @@ begin
   end);
 
 
+end;
+
+procedure TdmIntuitAPI.ListVendors;
+var
+  vendors : TJSONVendorListClass;
+begin
+  RESTRequest1.ResetToDefaults;
+  RESTRequest1.Method := rmGET;
+  RESTRequest1.Resource := '/v3/company/{RealmId}/query?query=select * from Vendor Where Metadata.LastUpdatedTime > ' + QuotedStr('2015-03-01');
+  RESTRequest1.AddParameter('RealmId', RealmId, pkURLSEGMENT);
+  RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
+  RESTRequest1.ExecuteAsync(procedure ()
+  var
+    i : Integer;
+  begin
+    vendors := TJSONVendorListClass.FromJsonString(RESTRequest1.Response.Content);
+    tblVendors.Active := True;
+    for i := 0 to Length(vendors.QueryResponse.Vendor) - 1 do
+    begin
+      tblVendors.Append;
+      tblVendorsId.Value := vendors.QueryResponse.Vendor[i].Id;
+      tblVendorsSyncToken.Value := vendors.QueryResponse.Vendor[i].SyncToken;
+      tblVendorsDisplayName.Value := vendors.QueryResponse.Vendor[i].DisplayName;
+      tblVendorsBalance.Value := vendors.QueryResponse.Vendor[i].Balance;
+      tblVendors.Post;
+    end;
+  end);
 end;
 
 function TdmIntuitAPI.GetEnvironment: string;
