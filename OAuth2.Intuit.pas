@@ -11,6 +11,9 @@ type
   TIntuitOAuth2 = class(TOAuth2Authenticator)
   private
     FRefreshExpiry: TDateTime;
+    function IsAccessTokenValid: Boolean;
+  protected
+    procedure DoAuthenticate(ARequest: TCustomRESTRequest); override;
   public
     procedure ChangeAuthCodeToAccesToken;
     procedure ChangeRefreshTokenToAccesToken;
@@ -114,6 +117,25 @@ begin
   finally
     LClient.DisposeOf;
   end;
+end;
+
+function TIntuitOAuth2.IsAccessTokenValid: Boolean;
+begin
+  Result := (AccessToken <> '') and
+    ((AccessTokenExpiry <= 0.1) or (AccessTokenExpiry > Now));
+end;
+
+procedure TIntuitOAuth2.DoAuthenticate(ARequest: TCustomRESTRequest);
+var
+  AuthData: string;
+begin
+  if not IsAccessTokenValid then
+  begin
+    if RefreshToken <> '' then
+      ChangeRefreshTokenToAccesToken;
+  end;
+  AuthData := 'Bearer ' + AccessToken;
+  ARequest.AddAuthParameter('Authorization', AuthData, TRESTRequestParameterKind.pkHTTPHEADER, [TRESTRequestParameterOption.poDoNotEncode]);
 end;
 
 procedure TIntuitOAuth2.ChangeAuthCodeToAccesToken;

@@ -122,6 +122,7 @@ begin
   OAuth2Authenticator1.ResponseType := TOAuth2ResponseType.rtCODE;
   FTokenManager := TTokenManager.Create(ChangeFileExt(ParamStr(0), '.ini'));
   OAuth2Authenticator1.RefreshToken := FTokenManager.RetrieveDecryptedToken;
+  RealmId := TokenManager.RetrieveExtraData('RealmId');
   RESTClient1.Authenticator := OAuth2Authenticator1;
   FfrmLogin := TfrmLogin.Create(nil);
   RESTClient1.BaseURL := 'https://sandbox-quickbooks.api.intuit.com';

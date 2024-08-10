@@ -391,11 +391,6 @@ object Form1: TForm1
         Row = 0
       end
       item
-        Column = 2
-        Control = btnAuthWithRefreshToken
-        Row = 0
-      end
-      item
         Column = 3
         Control = btnCreateInvoiceFromObject
         Row = 0
@@ -458,17 +453,6 @@ object Form1: TForm1
       OnClick = btnAttachFileClick
       ExplicitLeft = 134
     end
-    object btnAuthWithRefreshToken: TButton
-      Left = 214
-      Top = 1
-      Width = 138
-      Height = 25
-      Anchors = []
-      Caption = 'Auth with Refresh Token'
-      TabOrder = 2
-      OnClick = btnAuthWithRefreshTokenClick
-      ExplicitLeft = 213
-    end
     object btnCreateInvoiceFromObject: TButton
       Left = 288
       Top = 1
@@ -476,7 +460,7 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Create Invoice From Object'
-      TabOrder = 3
+      TabOrder = 2
       OnClick = btnCreateInvoiceFromObjectClick
       ExplicitLeft = 287
     end
@@ -487,7 +471,7 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'List Invoice'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = btnListInvoiceClick
       ExplicitLeft = 467
     end
@@ -498,7 +482,7 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Upload Invoice'
-      TabOrder = 5
+      TabOrder = 4
       OnClick = btnUploadInvoiceClick
       ExplicitLeft = 562
     end
@@ -509,7 +493,7 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Create Invoice'
-      TabOrder = 6
+      TabOrder = 5
       Visible = False
       OnClick = Button3Click
     end

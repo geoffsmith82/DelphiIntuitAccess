@@ -42,7 +42,6 @@ type
   TForm1 = class(TForm)
     Button3: TButton;
     btnListInvoice: TButton;
-    btnAuthWithRefreshToken: TButton;
     btnCreateInvoiceFromObject: TButton;
     GridPanel1: TGridPanel;
     GridPanel2: TGridPanel;
@@ -99,7 +98,6 @@ type
     procedure FormCreate(Sender: TObject);
     procedure Button3Click(Sender: TObject);
     procedure btnListInvoiceClick(Sender: TObject);
-    procedure btnAuthWithRefreshTokenClick(Sender: TObject);
     procedure btnCreateInvoiceFromObjectClick(Sender: TObject);
     procedure btnUploadInvoiceClick(Sender: TObject);
     procedure btnAddInvoiceLineClick(Sender: TObject);
@@ -217,11 +215,6 @@ Balance: 0
   finally
     FreeAndNil(invoiceList);
   end;
-end;
-
-procedure TForm1.btnAuthWithRefreshTokenClick(Sender: TObject);
-begin
-  dmIntuitAPI.ChangeRefreshTokenToAccessToken;
 end;
 
 procedure TForm1.btnCreateInvoiceFromObjectClick(Sender: TObject);
