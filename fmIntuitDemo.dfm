@@ -416,11 +416,6 @@ object Form1: TForm1
         Row = 0
       end
       item
-        Column = 5
-        Control = btnListInvoice
-        Row = 0
-      end
-      item
         Column = 6
         Control = btnUploadInvoice
         Row = 0
@@ -447,7 +442,8 @@ object Form1: TForm1
         SizeStyle = ssAuto
       end>
     TabOrder = 2
-    ExplicitWidth = 862
+    ExplicitLeft = -1
+    ExplicitTop = -4
     DesignSize = (
       866
       42)
@@ -481,18 +477,7 @@ object Form1: TForm1
       Caption = 'Create Invoice From Object'
       TabOrder = 2
       OnClick = btnCreateInvoiceFromObjectClick
-      ExplicitLeft = 287
-    end
-    object btnListInvoice: TButton
-      Left = 469
-      Top = 1
-      Width = 75
-      Height = 25
-      Anchors = []
-      Caption = 'List Invoice'
-      TabOrder = 3
-      OnClick = btnListInvoiceClick
-      ExplicitLeft = 467
+      ExplicitLeft = 289
     end
     object btnUploadInvoice: TButton
       Left = 565
@@ -501,7 +486,7 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Upload Invoice'
-      TabOrder = 4
+      TabOrder = 3
       OnClick = btnUploadInvoiceClick
       ExplicitLeft = 562
     end
@@ -512,7 +497,7 @@ object Form1: TForm1
       Height = 25
       Anchors = []
       Caption = 'Create Invoice'
-      TabOrder = 5
+      TabOrder = 4
       Visible = False
       OnClick = Button3Click
     end

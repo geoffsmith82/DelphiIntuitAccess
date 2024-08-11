@@ -184,7 +184,8 @@ begin
   doLog(invoiceText);
   RESTRequest1.Method := rmPost;
   FrealmID := GetEnvironmentData('RealmId');
-  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/invoice?minorversion=38';
+  RESTRequest1.Resource := '/v3/company/' + FrealmId + '/invoice';
+
   RESTRequest1.AddBody(invoiceText, ctAPPLICATION_JSON);
   RESTRequest1.Execute;
 
@@ -225,6 +226,7 @@ begin
   OAuth2Authenticator1.ClientID := FClientID;
   OAuth2Authenticator1.ClientSecret := FClientSecret;
   OAuth2Authenticator1.RefreshToken := TokenManager.RetrieveDecryptedToken(Environment, 'refresh_token');
+  FrealmId := self.GetEnvironmentData('RealmId');
   RESTClient1.BaseURL := GetBaseURL;
 end;
 
@@ -234,6 +236,7 @@ begin
   invoice.CurrencyRef.value := 'AUD';
   invoice.CustomerRef.name  := SECRET_CUSTOMER_NAME;
   invoice.CustomerRef.value := SECRET_CUSTOMER_ID;
+  invoice.DocNumber := invoiceID;
   invoice.EmailStatus := 'NotSet';
   invoice.GlobalTaxCalculation := 'NotApplicable';
   invoice.PrintStatus := 'NotSet';
@@ -431,7 +434,9 @@ begin
   attachable.AttachableRef := attachableRefArr;
 
   RESTRequest1.Method := rmPOST;
-  RESTRequest1.Resource := '/v3/company/' + RealmId + '/upload';
+  RESTRequest1.Resource := '/v3/company/{RealmId}/upload';
+  RESTRequest1.AddParameter('RealmId', RealmId, pkURLSEGMENT);
+  RESTRequest1.AddParameter('minorversion', '73', TRESTRequestParameterKind.pkQUERY);
 
   DoLog(attachable.ToJsonString);
   DoLog('--------');
