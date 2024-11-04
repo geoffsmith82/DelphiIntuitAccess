@@ -29,9 +29,10 @@ type
     procedure EdgeBrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser; AResult: HRESULT);
   private
     { Private declarations }
+    RedirectUrl : string;
   public
     { Public declarations }
-    procedure Login(url:string);
+    procedure Login(url:string; inRedirecturl: string);
   end;
 
   TURIParamHelper = record Helper for TURI
@@ -127,7 +128,7 @@ begin
     urlString := URL;
     // Check if the request URL matches the domain we want to block
     // need to update this to your domain so that the request doesn't actually get sent to server
-    if urlString.StartsWith('https://www.tysontechnology.com.au') then
+    if urlString.StartsWith(Redirecturl) then
     begin
       // Create a custom response to block the request
       EmptyStream := TStreamAdapter.Create(TMemoryStream.Create, soOwned);
@@ -145,8 +146,9 @@ begin
   EdgeBrowser.CreateWebView;
 end;
 
-procedure TfrmLogin.Login(url: string);
+procedure TfrmLogin.Login(url: string; inRedirecturl: string);
 begin
+  Redirecturl := inRedirecturl;
   EdgeBrowser.Navigate(url);
   ShowModal;
 end;

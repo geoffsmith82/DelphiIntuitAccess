@@ -399,7 +399,7 @@ begin
   uri.AddParameter('state', '2342342323');
   uri.AddParameter('response_type', 'code');
 
-  FfrmLogin.Login(uri.ToString);
+  FfrmLogin.Login(uri.ToString, SECRET_REDIRECT_URL);
 end;
 
 procedure TdmIntuitAPI.UploadAttachment(inFilename:string; inInvoiceID:string);
