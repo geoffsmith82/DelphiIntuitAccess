@@ -151,7 +151,7 @@ var
   environment: string;
 begin
   DirectoryListBox1.Directory := InitialDirectory;
-  environment := dmIntuitAPI.TokenManager.RetrieveExtraSectionData('Global', 'Enviromentment');
+  environment := dmIntuitAPI.Environment;
   if environment.ToLower = 'production' then
   begin
     Production1.Checked := True;

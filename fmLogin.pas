@@ -21,9 +21,12 @@ uses
 
 type
   TfrmLogin = class(TForm)
-    EdgeBrowser1: TEdgeBrowser;
-    procedure EdgeBrowser1NavigationCompleted(Sender: TCustomEdgeBrowser; IsSuccess: Boolean; WebErrorStatus: TOleEnum);
-    procedure EdgeBrowser1NavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
+    EdgeBrowser: TEdgeBrowser;
+    procedure EdgeBrowserNavigationCompleted(Sender: TCustomEdgeBrowser; IsSuccess: Boolean; WebErrorStatus: TOleEnum);
+    procedure EdgeBrowserNavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
+    procedure EdgeBrowserWebResourceRequested(Sender: TCustomEdgeBrowser; Args: TWebResourceRequestedEventArgs);
+    procedure FormCreate(Sender: TObject);
+    procedure EdgeBrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser; AResult: HRESULT);
   private
     { Private declarations }
   public
@@ -45,7 +48,19 @@ uses
   ;
 
 
-procedure TfrmLogin.EdgeBrowser1NavigationCompleted(Sender: TCustomEdgeBrowser;
+procedure TfrmLogin.EdgeBrowserCreateWebViewCompleted(Sender: TCustomEdgeBrowser; AResult: HRESULT);
+begin
+  if Succeeded(AResult) then
+  begin
+    // Set the OnWebResourceRequested event handler
+    EdgeBrowser.AddWebResourceRequestedFilter('*', COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+    EdgeBrowser.OnWebResourceRequested := EdgeBrowserWebResourceRequested;
+  end
+  else
+    ShowMessage('Failed to initialize WebView2');
+end;
+
+procedure TfrmLogin.EdgeBrowserNavigationCompleted(Sender: TCustomEdgeBrowser;
     IsSuccess: Boolean; WebErrorStatus: TOleEnum);
 var
   uri : TURI;
@@ -79,13 +94,15 @@ begin
   Close;
 end;
 
-procedure TfrmLogin.EdgeBrowser1NavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
+procedure TfrmLogin.EdgeBrowserNavigationStarting(Sender: TCustomEdgeBrowser; Args: TNavigationStartingEventArgs);
 var
   uri : TURI;
   url : string;
 begin
   url := Sender.LocationURL;
   if URL.StartsWith('about:') then Exit;
+  if url.IsEmpty then Exit;
+  
   uri := TURI.Create(URL);
   OutputDebugString(PChar('Browser: ' + uri.ToString));
 
@@ -96,9 +113,41 @@ begin
   Close;
 end;
 
+procedure TfrmLogin.EdgeBrowserWebResourceRequested(Sender: TCustomEdgeBrowser;
+  Args: TWebResourceRequestedEventArgs);
+var
+  Request: ICoreWebView2WebResourceRequest;
+  Response: ICoreWebView2WebResourceResponse;
+  URL: PChar;
+  urlString : string;
+  EmptyStream: IStream;
+begin
+    Args.ArgsInterface.Get_Request(Request);
+    Request.Get_uri(URL);
+    urlString := URL;
+    // Check if the request URL matches the domain we want to block
+    // need to update this to your domain so that the request doesn't actually get sent to server
+    if urlString.StartsWith('https://www.tysontechnology.com.au') then
+    begin
+      // Create a custom response to block the request
+      EmptyStream := TStreamAdapter.Create(TMemoryStream.Create, soOwned);
+      EdgeBrowser.EnvironmentInterface.CreateWebResourceResponse(
+        EmptyStream, 200, 'OK', 'Content-Type: text/html', Response);
+
+      Args.ArgsInterface.Set_Response(Response);
+    end;
+end;
+
+procedure TfrmLogin.FormCreate(Sender: TObject);
+begin
+  // Start creating the WebView2 environment
+  EdgeBrowser.OnCreateWebViewCompleted := EdgeBrowserCreateWebViewCompleted;
+  EdgeBrowser.CreateWebView;
+end;
+
 procedure TfrmLogin.Login(url: string);
 begin
-  EdgeBrowser1.Navigate(url);
+  EdgeBrowser.Navigate(url);
   ShowModal;
 end;
 
